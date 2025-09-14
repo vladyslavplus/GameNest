@@ -1,0 +1,115 @@
+# ===========================
+# Build / Output
+# ===========================
+bin/
+obj/
+out/
+Debug/
+Release/
+*.dll
+*.exe
+*.pdb
+*.app
+*.vsix
+*.nupkg
+
+# ===========================
+# User-specific / IDE
+# ===========================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.iml
+*.iws
+
+# Visual Studio Code
+.vscode/
+.history/
+*.code-workspace
+
+# ===========================
+# NuGet
+# ===========================
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+project.lock.json
+*.nuget.props
+*.nuget.targets
+
+# ===========================
+# EF Core / Migrations
+# ===========================
+Migrations/
+*.Database.sql
+
+# ===========================
+# Entity Framework / LocalDB
+# ===========================
+*.mdf
+*.ldf
+*.log
+*.sdf
+*.db
+
+# ===========================
+# ASP.NET / Web
+# ===========================
+wwwroot/lib/
+*.publishsettings
+*.publishproj
+*.azurePubxml
+*.userprefs
+appsettings.*.json
+*.log
+
+# ===========================
+# Rider / ReSharper
+# ===========================
+_ReSharper*/
+*.DotSettings.user
+*.resharper
+
+# ===========================
+# Temporary / OS Files
+# ===========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===========================
+# Certificates / Secrets
+# ===========================
+*.pfx
+*.cer
+*.key
+*.pem
+*.secret.json
+
+# ===========================
+# Test results / Coverage
+# ===========================
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.opencover.xml
+*.profdata
+*.dotCover
+
+# ===========================
+# Dotnet local tools
+# ===========================
+.dotnet/
+.global.json
