@@ -1,10 +1,9 @@
-﻿using GameNest.OrderService.BLL.DTOs.PaymentRecord;
+﻿using GameNest.OrderService.Domain.Entities;
 
 namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
-    public interface IPaymentRecordRepository
-        : IGenericRepository<PaymentRecordDto, PaymentRecordCreateDto, PaymentRecordUpdateDto>
+    public interface IPaymentRecordRepository : IGenericRepository<PaymentRecord>
     {
-        Task<IEnumerable<PaymentRecordDto>> GetByOrderIdAsync(Guid orderId);
+        Task<IEnumerable<PaymentRecord>> GetByOrderIdAsync(Guid orderId);
     }
 }

@@ -1,11 +1,10 @@
-﻿using GameNest.OrderService.BLL.DTOs.Customer;
+﻿using GameNest.OrderService.Domain.Entities;
 
 namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
-    public interface ICustomerRepository
-        : IGenericRepository<CustomerDto, CustomerCreateDto, CustomerUpdateDto>
+    public interface ICustomerRepository : IGenericRepository<Customer>
     {
-        Task<CustomerDto?> GetByEmailAsync(string email);
-        Task<CustomerDto?> GetByUsernameAsync(string username);
+        Task<Customer?> GetByEmailAsync(string email);
+        Task<Customer?> GetByUsernameAsync(string username);
     }
 }

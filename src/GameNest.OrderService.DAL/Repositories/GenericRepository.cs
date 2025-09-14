@@ -1,17 +1,16 @@
 ﻿using Dapper;
 using GameNest.OrderService.DAL.Repositories.Interfaces;
+using GameNest.OrderService.Domain.Entities;
 using System.Data;
 using System.Reflection;
 
 namespace GameNest.OrderService.DAL.Repositories
 {
-    public class GenericRepository<TDto, TCreateDto, TUpdateDto> : IGenericRepository<TDto, TCreateDto, TUpdateDto>
-        where TDto : class
-        where TCreateDto : class
-        where TUpdateDto : class
+    public class GenericRepository<TEntity> : IGenericRepository<TEntity>
+        where TEntity : BaseEntity
     {
-        protected IDbConnection _connection;
-        protected IDbTransaction? _transaction;
+        protected readonly IDbConnection _connection;
+        protected readonly IDbTransaction? _transaction;
         private readonly string _tableName;
         private readonly bool _softDelete;
 
@@ -23,47 +22,47 @@ namespace GameNest.OrderService.DAL.Repositories
             _softDelete = softDelete;
         }
 
-        public virtual async Task<TDto?> GetByIdAsync(Guid id)
+        public virtual async Task<TEntity?> GetByIdAsync(Guid id)
         {
             var query = $"SELECT * FROM {_tableName} WHERE id = @Id";
             if (_softDelete)
                 query += " AND is_deleted = FALSE";
 
-            return await _connection.QuerySingleOrDefaultAsync<TDto>(query, new { Id = id }, _transaction);
+            return await _connection.QuerySingleOrDefaultAsync<TEntity>(query, new { Id = id }, _transaction);
         }
 
-        public virtual async Task<IEnumerable<TDto>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             var query = $"SELECT * FROM {_tableName}";
             if (_softDelete)
                 query += " WHERE is_deleted = FALSE";
 
-            return await _connection.QueryAsync<TDto>(query, transaction: _transaction);
+            return await _connection.QueryAsync<TEntity>(query, transaction: _transaction);
         }
 
-        public virtual async Task<Guid> CreateAsync(TCreateDto dto)
+        public virtual async Task<Guid> CreateAsync(TEntity entity)
         {
-            var columns = GetColumns<TCreateDto>();
+            var columns = GetColumns<TEntity>();
             var columnsString = string.Join(", ", columns);
             var paramsString = string.Join(", ", columns.Select(c => "@" + c));
 
             var query = $"INSERT INTO {_tableName} ({columnsString}) VALUES ({paramsString}) RETURNING id";
 
-            return await _connection.ExecuteScalarAsync<Guid>(query, dto, _transaction);
+            return await _connection.ExecuteScalarAsync<Guid>(query, entity, _transaction);
         }
 
-        public virtual async Task UpdateAsync(Guid id, TUpdateDto dto)
+        public virtual async Task UpdateAsync(TEntity entity)
         {
-            var columns = GetColumns<TUpdateDto>();
+            var columns = GetColumns<TEntity>();
             var setString = string.Join(", ", columns.Select(c => $"{c} = @{c}"));
 
             var query = $"UPDATE {_tableName} SET {setString} WHERE id = @Id";
             if (_softDelete)
                 query += " AND is_deleted = FALSE";
 
-            var affected = await _connection.ExecuteAsync(query, MergeDtoWithId(dto, id), _transaction);
+            var affected = await _connection.ExecuteAsync(query, entity, _transaction);
             if (affected == 0)
-                throw new KeyNotFoundException($"{_tableName} with Id {id} not found");
+                throw new KeyNotFoundException($"{_tableName} with Id {entity.Id} not found");
         }
 
         public virtual async Task DeleteAsync(Guid id)
@@ -88,15 +87,6 @@ namespace GameNest.OrderService.DAL.Repositories
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => !auditFields.Contains(p.Name))
                 .Select(p => p.Name);
-        }
-
-        private static object MergeDtoWithId<T>(T dto, Guid id)
-        {
-            var dict = typeof(T)
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .ToDictionary(p => p.Name, p => p.GetValue(dto));
-            dict["Id"] = id;
-            return dict;
         }
     }
 }

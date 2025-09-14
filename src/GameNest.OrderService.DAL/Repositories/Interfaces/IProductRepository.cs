@@ -1,10 +1,9 @@
-﻿using GameNest.OrderService.BLL.DTOs.Product;
+﻿using GameNest.OrderService.Domain.Entities;
 
 namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
-    public interface IProductRepository
-        : IGenericRepository<ProductDto, ProductCreateDto, ProductUpdateDto>
+    public interface IProductRepository : IGenericRepository<Product>
     {
-        Task<IEnumerable<ProductDto>> SearchByTitleAsync(string titlePart);
+        Task<IEnumerable<Product>> SearchByTitleAsync(string titlePart);
     }
 }

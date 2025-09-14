@@ -1,16 +1,14 @@
-﻿using System.Data;
+﻿using GameNest.OrderService.Domain.Entities;
 
 namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
-    public interface IGenericRepository<TDto, in TCreateDto, in TUpdateDto>
-        where TDto : class
-        where TCreateDto : class
-        where TUpdateDto : class
+    public interface IGenericRepository<TEntity>
+        where TEntity : BaseEntity
     {
-        Task<TDto?> GetByIdAsync(Guid id);
-        Task<IEnumerable<TDto>> GetAllAsync();
-        Task<Guid> CreateAsync(TCreateDto dto);
-        Task UpdateAsync(Guid id, TUpdateDto dto);
+        Task<TEntity?> GetByIdAsync(Guid id);
+        Task<IEnumerable<TEntity>> GetAllAsync();
+        Task<Guid> CreateAsync(TEntity entity);
+        Task UpdateAsync(TEntity entity);
         Task DeleteAsync(Guid id);
     }
 }

@@ -1,5 +1,5 @@
-﻿using GameNest.OrderService.BLL.DTOs.Product;
-using GameNest.OrderService.DAL.Repositories.Interfaces;
+﻿using GameNest.OrderService.DAL.Repositories.Interfaces;
+using GameNest.OrderService.Domain.Entities;
 using Npgsql;
 using System.Data;
 
@@ -16,91 +16,72 @@ namespace GameNest.OrderService.DAL.Repositories
             _transaction = transaction;
         }
 
-        public async Task<ProductDto?> GetByIdAsync(Guid id)
+        public async Task<Product?> GetByIdAsync(Guid id)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "SELECT id, title, description, price FROM product WHERE id = @Id AND is_deleted = FALSE";
-
-            var param = cmd.CreateParameter();
-            param.ParameterName = "@Id";
-            param.Value = id;
-            cmd.Parameters.Add(param);
+            cmd.CommandText = "SELECT * FROM product WHERE id = @Id AND is_deleted = FALSE";
+            cmd.Parameters.Add(new NpgsqlParameter("@Id", id));
 
             using var reader = await Task.Run(() => cmd.ExecuteReader());
-            if (reader.Read())
-            {
-                return new ProductDto
-                {
-                    Id = reader.GetGuid(reader.GetOrdinal("id")),
-                    Title = reader.GetString(reader.GetOrdinal("title")),
-                    Description = reader.GetString(reader.GetOrdinal("description")),
-                    Price = reader.GetDecimal(reader.GetOrdinal("price"))
-                };
-            }
-
-            return null;
+            return reader.Read() ? MapReaderToProduct(reader) : null;
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            var result = new List<ProductDto>();
+            var result = new List<Product>();
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "SELECT id, title, description, price FROM product WHERE is_deleted = FALSE";
+            cmd.CommandText = "SELECT * FROM product WHERE is_deleted = FALSE";
 
             using var reader = await Task.Run(() => cmd.ExecuteReader());
             while (reader.Read())
-            {
-                result.Add(new ProductDto
-                {
-                    Id = reader.GetGuid(reader.GetOrdinal("id")),
-                    Title = reader.GetString(reader.GetOrdinal("title")),
-                    Description = reader.GetString(reader.GetOrdinal("description")),
-                    Price = reader.GetDecimal(reader.GetOrdinal("price"))
-                });
-            }
+                result.Add(MapReaderToProduct(reader));
 
             return result;
         }
 
-        public async Task<Guid> CreateAsync(ProductCreateDto dto)
+        public async Task<Guid> CreateAsync(Product entity)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "INSERT INTO product (title, description, price) VALUES (@Title, @Description, @Price) RETURNING id";
+            cmd.CommandText = @"
+                INSERT INTO product 
+                    (title, description, price, created_at, updated_at, created_by, updated_by, is_deleted)
+                VALUES 
+                    (@Title, @Description, @Price, @Created_At, @Updated_At, @Created_By, @Updated_By, @Is_Deleted)
+                RETURNING id";
 
-            var p1 = cmd.CreateParameter();
-            p1.ParameterName = "@Title";
-            p1.Value = dto.Title;
-            cmd.Parameters.Add(p1);
-
-            var p2 = cmd.CreateParameter();
-            p2.ParameterName = "@Description";
-            p2.Value = dto.Description;
-            cmd.Parameters.Add(p2);
-
-            var p3 = cmd.CreateParameter();
-            p3.ParameterName = "@Price";
-            p3.Value = dto.Price;
-            cmd.Parameters.Add(p3);
+            cmd.Parameters.Add(new NpgsqlParameter("@Title", entity.Title));
+            cmd.Parameters.Add(new NpgsqlParameter("@Description", (object?)entity.Description ?? DBNull.Value));
+            cmd.Parameters.Add(new NpgsqlParameter("@Price", entity.Price));
+            cmd.Parameters.Add(new NpgsqlParameter("@Created_At", entity.Created_At));
+            cmd.Parameters.Add(new NpgsqlParameter("@Updated_At", entity.Updated_At));
+            cmd.Parameters.Add(new NpgsqlParameter("@Created_By", (object?)entity.Created_By ?? DBNull.Value));
+            cmd.Parameters.Add(new NpgsqlParameter("@Updated_By", (object?)entity.Updated_By ?? DBNull.Value));
+            cmd.Parameters.Add(new NpgsqlParameter("@Is_Deleted", entity.Is_Deleted));
 
             return await Task.Run(() => (Guid)cmd.ExecuteScalar()!);
         }
 
-        public async Task UpdateAsync(Guid id, ProductUpdateDto dto)
+        public async Task UpdateAsync(Product entity)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "UPDATE product SET title=@Title, description=@Description, price=@Price WHERE id=@Id AND is_deleted = FALSE";
+            cmd.CommandText = @"
+                UPDATE product
+                SET title=@Title, description=@Description, price=@Price, updated_at=@Updated_At, updated_by=@Updated_By
+                WHERE id=@Id AND is_deleted = FALSE";
 
-            cmd.Parameters.Add(new NpgsqlParameter("@Title", dto.Title));
-            cmd.Parameters.Add(new NpgsqlParameter("@Description", dto.Description));
-            cmd.Parameters.Add(new NpgsqlParameter("@Price", dto.Price));
-            cmd.Parameters.Add(new NpgsqlParameter("@Id", id));
+            cmd.Parameters.Add(new NpgsqlParameter("@Title", entity.Title));
+            cmd.Parameters.Add(new NpgsqlParameter("@Description", (object?)entity.Description ?? DBNull.Value));
+            cmd.Parameters.Add(new NpgsqlParameter("@Price", entity.Price));
+            cmd.Parameters.Add(new NpgsqlParameter("@Updated_At", entity.Updated_At));
+            cmd.Parameters.Add(new NpgsqlParameter("@Updated_By", (object?)entity.Updated_By ?? DBNull.Value));
+            cmd.Parameters.Add(new NpgsqlParameter("@Id", entity.Id));
 
             var affected = await Task.Run(() => cmd.ExecuteNonQuery());
-            if (affected == 0) throw new KeyNotFoundException($"Product with Id {id} not found");
+            if (affected == 0) throw new KeyNotFoundException($"Product with Id {entity.Id} not found");
         }
 
         public async Task DeleteAsync(Guid id)
@@ -108,35 +89,41 @@ namespace GameNest.OrderService.DAL.Repositories
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
             cmd.CommandText = "UPDATE product SET is_deleted = TRUE WHERE id=@Id";
-
-            cmd.Parameters.Add(new Npgsql.NpgsqlParameter("@Id", id));
+            cmd.Parameters.Add(new NpgsqlParameter("@Id", id));
 
             var affected = await Task.Run(() => cmd.ExecuteNonQuery());
             if (affected == 0) throw new KeyNotFoundException($"Product with Id {id} not found");
         }
 
-        public async Task<IEnumerable<ProductDto>> SearchByTitleAsync(string titlePart)
+        public async Task<IEnumerable<Product>> SearchByTitleAsync(string titlePart)
         {
-            var result = new List<ProductDto>();
+            var result = new List<Product>();
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "SELECT id, title, description, price FROM product WHERE title ILIKE @Title AND is_deleted = FALSE";
-
+            cmd.CommandText = "SELECT * FROM product WHERE title ILIKE @Title AND is_deleted = FALSE";
             cmd.Parameters.Add(new NpgsqlParameter("@Title", $"%{titlePart}%"));
 
             using var reader = await Task.Run(() => cmd.ExecuteReader());
             while (reader.Read())
-            {
-                result.Add(new ProductDto
-                {
-                    Id = reader.GetGuid(reader.GetOrdinal("id")),
-                    Title = reader.GetString(reader.GetOrdinal("title")),
-                    Description = reader.GetString(reader.GetOrdinal("description")),
-                    Price = reader.GetDecimal(reader.GetOrdinal("price"))
-                });
-            }
+                result.Add(MapReaderToProduct(reader));
 
             return result;
+        }
+
+        private static Product MapReaderToProduct(IDataReader reader)
+        {
+            return new Product
+            {
+                Id = reader.GetGuid(reader.GetOrdinal("id")),
+                Title = reader.GetString(reader.GetOrdinal("title")),
+                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                Price = reader.GetDecimal(reader.GetOrdinal("price")),
+                Created_At = reader.GetDateTime(reader.GetOrdinal("created_at")),
+                Updated_At = reader.GetDateTime(reader.GetOrdinal("updated_at")),
+                Created_By = reader.IsDBNull(reader.GetOrdinal("created_by")) ? null : reader.GetGuid(reader.GetOrdinal("created_by")),
+                Updated_By = reader.IsDBNull(reader.GetOrdinal("updated_by")) ? null : reader.GetGuid(reader.GetOrdinal("updated_by")),
+                Is_Deleted = reader.GetBoolean(reader.GetOrdinal("is_deleted"))
+            };
         }
     }
 }

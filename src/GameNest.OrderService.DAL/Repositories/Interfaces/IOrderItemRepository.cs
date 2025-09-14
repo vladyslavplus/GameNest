@@ -1,10 +1,9 @@
-﻿using GameNest.OrderService.BLL.DTOs.OrderItem;
+﻿using GameNest.OrderService.Domain.Entities;
 
 namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
-    public interface IOrderItemRepository
-        : IGenericRepository<OrderItemDto, OrderItemCreateDto, OrderItemUpdateDto>
+    public interface IOrderItemRepository : IGenericRepository<OrderItem>
     {
-        Task<IEnumerable<OrderItemDto>> GetByOrderIdAsync(Guid orderId);
+        Task<IEnumerable<OrderItem>> GetByOrderIdAsync(Guid orderId);
     }
 }
