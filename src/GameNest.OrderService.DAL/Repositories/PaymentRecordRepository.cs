@@ -8,7 +8,7 @@ namespace GameNest.OrderService.DAL.Repositories
     public class PaymentRecordRepository : GenericRepository<PaymentRecordDto, PaymentRecordCreateDto, PaymentRecordUpdateDto>, IPaymentRecordRepository
     {
         public PaymentRecordRepository(IDbConnection connection, IDbTransaction? transaction = null)
-            : base("payment_records", connection, transaction)
+            : base("payment_record", connection, transaction)
         {
         }
 

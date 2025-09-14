@@ -8,19 +8,19 @@ namespace GameNest.OrderService.DAL.Repositories
     public class CustomerRepository : GenericRepository<CustomerDto, CustomerCreateDto, CustomerUpdateDto>, ICustomerRepository
     {
         public CustomerRepository(IDbConnection connection, IDbTransaction? transaction = null)
-            : base("customers", connection, transaction)
+            : base("customer", connection, transaction)
         {
         }
 
         public async Task<CustomerDto?> GetByEmailAsync(string email)
         {
-            var query = "SELECT * FROM customers WHERE email = @Email AND is_deleted = FALSE";
+            var query = "SELECT * FROM customer WHERE email = @Email AND is_deleted = FALSE";
             return await _connection.QuerySingleOrDefaultAsync<CustomerDto>(query, new { Email = email }, _transaction);
         }
 
         public async Task<CustomerDto?> GetByUsernameAsync(string username)
         {
-            var query = "SELECT * FROM customers WHERE username = @Username AND is_deleted = FALSE";
+            var query = "SELECT * FROM customer WHERE username = @Username AND is_deleted = FALSE";
             return await _connection.QuerySingleOrDefaultAsync<CustomerDto>(query, new { Username = username }, _transaction);
         }
     }

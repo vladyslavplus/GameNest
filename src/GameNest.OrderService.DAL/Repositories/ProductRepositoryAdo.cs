@@ -20,7 +20,7 @@ namespace GameNest.OrderService.DAL.Repositories
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "SELECT id, title, description, price FROM products WHERE id = @Id AND is_deleted = FALSE";
+            cmd.CommandText = "SELECT id, title, description, price FROM product WHERE id = @Id AND is_deleted = FALSE";
 
             var param = cmd.CreateParameter();
             param.ParameterName = "@Id";
@@ -47,7 +47,7 @@ namespace GameNest.OrderService.DAL.Repositories
             var result = new List<ProductDto>();
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "SELECT id, title, description, price FROM products WHERE is_deleted = FALSE";
+            cmd.CommandText = "SELECT id, title, description, price FROM product WHERE is_deleted = FALSE";
 
             using var reader = await Task.Run(() => cmd.ExecuteReader());
             while (reader.Read())
@@ -68,7 +68,7 @@ namespace GameNest.OrderService.DAL.Repositories
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "INSERT INTO products (title, description, price) VALUES (@Title, @Description, @Price) RETURNING id";
+            cmd.CommandText = "INSERT INTO product (title, description, price) VALUES (@Title, @Description, @Price) RETURNING id";
 
             var p1 = cmd.CreateParameter();
             p1.ParameterName = "@Title";
@@ -92,7 +92,7 @@ namespace GameNest.OrderService.DAL.Repositories
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "UPDATE products SET title=@Title, description=@Description, price=@Price WHERE id=@Id AND is_deleted = FALSE";
+            cmd.CommandText = "UPDATE product SET title=@Title, description=@Description, price=@Price WHERE id=@Id AND is_deleted = FALSE";
 
             cmd.Parameters.Add(new NpgsqlParameter("@Title", dto.Title));
             cmd.Parameters.Add(new NpgsqlParameter("@Description", dto.Description));
@@ -107,7 +107,7 @@ namespace GameNest.OrderService.DAL.Repositories
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "UPDATE products SET is_deleted = TRUE WHERE id=@Id";
+            cmd.CommandText = "UPDATE product SET is_deleted = TRUE WHERE id=@Id";
 
             cmd.Parameters.Add(new Npgsql.NpgsqlParameter("@Id", id));
 
@@ -120,7 +120,7 @@ namespace GameNest.OrderService.DAL.Repositories
             var result = new List<ProductDto>();
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "SELECT id, title, description, price FROM products WHERE title ILIKE @Title AND is_deleted = FALSE";
+            cmd.CommandText = "SELECT id, title, description, price FROM product WHERE title ILIKE @Title AND is_deleted = FALSE";
 
             cmd.Parameters.Add(new NpgsqlParameter("@Title", $"%{titlePart}%"));
 
