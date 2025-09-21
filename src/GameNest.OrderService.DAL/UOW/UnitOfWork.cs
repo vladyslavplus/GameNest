@@ -11,20 +11,19 @@ namespace GameNest.OrderService.DAL.UOW
         private IDbConnection? _connection;
         private IDbTransaction? _transaction;
         private bool _disposed = false;
+        private readonly object _lockObject = new object();
 
         public ICustomerRepository? Customers { get; private set; }
         public IProductRepository? Products { get; private set; }
         public IOrderRepository? Orders { get; private set; }
         public IOrderItemRepository? OrderItems { get; private set; }
         public IPaymentRecordRepository? PaymentRecords { get; private set; }
-
         public IConnectionFactory ConnectionFactory => _connectionFactory;
 
         public UnitOfWork(IConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
             _connection = _connectionFactory.GetConnection();
-
             InitializeRepositories();
         }
 
@@ -39,55 +38,76 @@ namespace GameNest.OrderService.DAL.UOW
             PaymentRecords = new PaymentRecordRepository(_connection, _transaction);
         }
 
-        public void BeginTransaction()
+        private void EnsureTransactionStarted()
         {
-            if (_transaction != null)
-                throw new InvalidOperationException("Transaction already started");
+            lock (_lockObject)
+            {
+                if (_transaction == null)
+                {
+                    if (_connection?.State != ConnectionState.Open)
+                        _connection?.Open();
 
-            if (_connection?.State != ConnectionState.Open)
-                _connection?.Open();
-
-            _transaction = _connection!.BeginTransaction();
-
-            InitializeRepositories();
+                    _transaction = _connection!.BeginTransaction();
+                    InitializeRepositories();
+                }
+            }
         }
 
-        public Task CommitAsync()
+        public void BeginTransaction()
         {
-            if (_transaction == null)
-                throw new InvalidOperationException("No active transaction");
+            lock (_lockObject)
+            {
+                if (_transaction != null)
+                    throw new InvalidOperationException("Transaction already started");
 
-            try
-            {
-                _transaction.Commit();
+                EnsureTransactionStarted();
             }
-            catch
+        }
+
+        public Task CommitAsync(CancellationToken ct = default)
+        {
+            lock (_lockObject)
             {
-                _transaction.Rollback();
-                throw;
-            }
-            finally
-            {
-                _transaction.Dispose();
-                _transaction = null;
+                EnsureTransactionStarted();
+
+                if (_transaction == null)
+                    throw new InvalidOperationException("No active transaction");
+
+                try
+                {
+                    _transaction.Commit();
+                }
+                catch
+                {
+                    _transaction.Rollback();
+                    throw;
+                }
+                finally
+                {
+                    _transaction.Dispose();
+                    _transaction = null;
+                }
             }
 
             return Task.CompletedTask;
         }
 
-        public Task RollbackAsync()
+        public Task RollbackAsync(CancellationToken ct = default)
         {
-            if (_transaction == null)
-                throw new InvalidOperationException("No active transaction");
+            lock (_lockObject)
+            {
+                if (_transaction == null)
+                    return Task.CompletedTask; 
 
-            try
-            {
-                _transaction.Rollback();
-            }
-            finally
-            {
-                _transaction.Dispose();
-                _transaction = null;
+                try
+                {
+                    _transaction.Rollback();
+                }
+                finally
+                {
+                    _transaction.Dispose();
+                    _transaction = null;
+                }
             }
 
             return Task.CompletedTask;
@@ -106,7 +126,6 @@ namespace GameNest.OrderService.DAL.UOW
             {
                 if (_connection.State != ConnectionState.Closed)
                     _connection.Close();
-
                 _connection.Dispose();
                 _connection = null;
             }

@@ -10,7 +10,7 @@ namespace GameNest.OrderService.DAL.UOW
         IOrderItemRepository? OrderItems { get; }
         IPaymentRecordRepository? PaymentRecords { get; }
         void BeginTransaction();
-        Task CommitAsync();
-        Task RollbackAsync();
+        Task CommitAsync(CancellationToken ct = default);
+        Task RollbackAsync(CancellationToken ct = default);
     }
 }
