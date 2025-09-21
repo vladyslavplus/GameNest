@@ -4,6 +4,6 @@ namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
     public interface IProductRepository : IGenericRepository<Product>
     {
-        Task<IEnumerable<Product>> SearchByTitleAsync(string titlePart);
+        Task<IEnumerable<Product>> SearchByTitleAsync(string titlePart, CancellationToken ct = default);
     }
 }

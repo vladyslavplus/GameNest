@@ -4,6 +4,6 @@ namespace GameNest.OrderService.DAL.Repositories.Interfaces
 {
     public interface IPaymentRecordRepository : IGenericRepository<PaymentRecord>
     {
-        Task<IEnumerable<PaymentRecord>> GetByOrderIdAsync(Guid orderId);
+        Task<IEnumerable<PaymentRecord>> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default);
     }
 }

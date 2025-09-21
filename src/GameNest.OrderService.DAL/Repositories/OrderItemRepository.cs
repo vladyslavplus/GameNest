@@ -12,10 +12,15 @@ namespace GameNest.OrderService.DAL.Repositories
         {
         }
 
-        public async Task<IEnumerable<OrderItem>> GetByOrderIdAsync(Guid orderId)
+        public async Task<IEnumerable<OrderItem>> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default)
         {
             var query = "SELECT * FROM order_item WHERE order_id = @OrderId AND is_deleted = FALSE";
-            return await _connection.QueryAsync<OrderItem>(query, new { OrderId = orderId }, _transaction);
+            return await _connection.QueryAsync<OrderItem>(new CommandDefinition(
+                query,
+                new { OrderId = orderId },
+                transaction: _transaction,
+                cancellationToken: ct
+            ));
         }
     }
 }

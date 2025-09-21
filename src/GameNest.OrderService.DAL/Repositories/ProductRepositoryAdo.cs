@@ -2,6 +2,7 @@
 using GameNest.OrderService.Domain.Entities;
 using Npgsql;
 using System.Data;
+using System.Threading;
 
 namespace GameNest.OrderService.DAL.Repositories
 {
@@ -16,32 +17,32 @@ namespace GameNest.OrderService.DAL.Repositories
             _transaction = transaction;
         }
 
-        public async Task<Product?> GetByIdAsync(Guid id)
+        public async Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
             cmd.CommandText = "SELECT * FROM product WHERE id = @Id AND is_deleted = FALSE";
             cmd.Parameters.Add(new NpgsqlParameter("@Id", id));
 
-            using var reader = await Task.Run(() => cmd.ExecuteReader());
+            using var reader = await Task.Run(() => cmd.ExecuteReader(), ct);
             return reader.Read() ? MapReaderToProduct(reader) : null;
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken ct = default)
         {
             var result = new List<Product>();
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
             cmd.CommandText = "SELECT * FROM product WHERE is_deleted = FALSE";
 
-            using var reader = await Task.Run(() => cmd.ExecuteReader());
+            using var reader = await Task.Run(() => cmd.ExecuteReader(), ct);
             while (reader.Read())
                 result.Add(MapReaderToProduct(reader));
 
             return result;
         }
 
-        public async Task<Guid> CreateAsync(Product entity)
+        public async Task<Guid> CreateAsync(Product entity, CancellationToken ct = default)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
@@ -61,10 +62,10 @@ namespace GameNest.OrderService.DAL.Repositories
             cmd.Parameters.Add(new NpgsqlParameter("@Updated_By", (object?)entity.Updated_By ?? DBNull.Value));
             cmd.Parameters.Add(new NpgsqlParameter("@Is_Deleted", entity.Is_Deleted));
 
-            return await Task.Run(() => (Guid)cmd.ExecuteScalar()!);
+            return await Task.Run(() => (Guid)cmd.ExecuteScalar()!, ct);
         }
 
-        public async Task UpdateAsync(Product entity)
+        public async Task UpdateAsync(Product entity, CancellationToken ct = default)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
@@ -80,22 +81,33 @@ namespace GameNest.OrderService.DAL.Repositories
             cmd.Parameters.Add(new NpgsqlParameter("@Updated_By", (object?)entity.Updated_By ?? DBNull.Value));
             cmd.Parameters.Add(new NpgsqlParameter("@Id", entity.Id));
 
-            var affected = await Task.Run(() => cmd.ExecuteNonQuery());
+            var affected = await Task.Run(() => cmd.ExecuteNonQuery(), ct);
             if (affected == 0) throw new KeyNotFoundException($"Product with Id {entity.Id} not found");
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id, bool softDelete = true, CancellationToken ct = default)
         {
             using var cmd = _connection.CreateCommand();
             cmd.Transaction = _transaction;
-            cmd.CommandText = "UPDATE product SET is_deleted = TRUE WHERE id=@Id";
+
+            if (softDelete)
+            {
+                cmd.CommandText = "UPDATE product SET is_deleted = TRUE, updated_at=@UpdatedAt WHERE id=@Id";
+                cmd.Parameters.Add(new NpgsqlParameter("@UpdatedAt", DateTime.UtcNow));
+            }
+            else
+            {
+                cmd.CommandText = "DELETE FROM product WHERE id=@Id";
+            }
+
             cmd.Parameters.Add(new NpgsqlParameter("@Id", id));
 
-            var affected = await Task.Run(() => cmd.ExecuteNonQuery());
-            if (affected == 0) throw new KeyNotFoundException($"Product with Id {id} not found");
+            var affected = await Task.Run(() => cmd.ExecuteNonQuery(), ct);
+            if (affected == 0)
+                throw new KeyNotFoundException($"Product with Id {id} not found");
         }
 
-        public async Task<IEnumerable<Product>> SearchByTitleAsync(string titlePart)
+        public async Task<IEnumerable<Product>> SearchByTitleAsync(string titlePart, CancellationToken ct = default)
         {
             var result = new List<Product>();
             using var cmd = _connection.CreateCommand();
@@ -103,7 +115,7 @@ namespace GameNest.OrderService.DAL.Repositories
             cmd.CommandText = "SELECT * FROM product WHERE title ILIKE @Title AND is_deleted = FALSE";
             cmd.Parameters.Add(new NpgsqlParameter("@Title", $"%{titlePart}%"));
 
-            using var reader = await Task.Run(() => cmd.ExecuteReader());
+            using var reader = await Task.Run(() => cmd.ExecuteReader(), ct);
             while (reader.Read())
                 result.Add(MapReaderToProduct(reader));
 

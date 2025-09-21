@@ -12,16 +12,26 @@ namespace GameNest.OrderService.DAL.Repositories
         {
         }
 
-        public async Task<Customer?> GetByEmailAsync(string email)
+        public async Task<Customer?> GetByEmailAsync(string email, CancellationToken ct = default)
         {
             var query = "SELECT * FROM customer WHERE email = @Email AND is_deleted = FALSE";
-            return await _connection.QuerySingleOrDefaultAsync<Customer>(query, new { Email = email }, _transaction);
+            return await _connection.QuerySingleOrDefaultAsync<Customer>(new CommandDefinition(
+                query,
+                new { Email = email },
+                transaction: _transaction,
+                cancellationToken: ct
+            ));
         }
 
-        public async Task<Customer?> GetByUsernameAsync(string username)
+        public async Task<Customer?> GetByUsernameAsync(string username, CancellationToken ct = default)
         {
             var query = "SELECT * FROM customer WHERE username = @Username AND is_deleted = FALSE";
-            return await _connection.QuerySingleOrDefaultAsync<Customer>(query, new { Username = username }, _transaction);
+            return await _connection.QuerySingleOrDefaultAsync<Customer>(new CommandDefinition(
+                query,
+                new { Username = username },
+                transaction: _transaction,
+                cancellationToken: ct
+            ));
         }
     }
 }

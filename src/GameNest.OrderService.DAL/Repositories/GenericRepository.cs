@@ -22,25 +22,25 @@ namespace GameNest.OrderService.DAL.Repositories
             _softDelete = softDelete;
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(Guid id)
+        public virtual async Task<TEntity?> GetByIdAsync(Guid id, CancellationToken ct = default)
         {
             var query = $"SELECT * FROM {_tableName} WHERE id = @Id";
             if (_softDelete)
                 query += " AND is_deleted = FALSE";
 
-            return await _connection.QuerySingleOrDefaultAsync<TEntity>(query, new { Id = id }, _transaction);
+            return await _connection.QuerySingleOrDefaultAsync<TEntity>(new CommandDefinition(query, new { Id = id }, _transaction, cancellationToken: ct));
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
         {
             var query = $"SELECT * FROM {_tableName}";
             if (_softDelete)
                 query += " WHERE is_deleted = FALSE";
 
-            return await _connection.QueryAsync<TEntity>(query, transaction: _transaction);
+            return await _connection.QueryAsync<TEntity>(new CommandDefinition(query, transaction: _transaction, cancellationToken: ct));
         }
 
-        public virtual async Task<Guid> CreateAsync(TEntity entity)
+        public virtual async Task<Guid> CreateAsync(TEntity entity, CancellationToken ct = default)
         {
             var columns = GetColumns<TEntity>();
             var columnsString = string.Join(", ", columns);
@@ -48,10 +48,10 @@ namespace GameNest.OrderService.DAL.Repositories
 
             var query = $"INSERT INTO {_tableName} ({columnsString}) VALUES ({paramsString}) RETURNING id";
 
-            return await _connection.ExecuteScalarAsync<Guid>(query, entity, _transaction);
+            return await _connection.ExecuteScalarAsync<Guid>(new CommandDefinition(query, entity, _transaction, cancellationToken: ct));
         }
 
-        public virtual async Task UpdateAsync(TEntity entity)
+        public virtual async Task UpdateAsync(TEntity entity, CancellationToken ct = default)
         {
             var columns = GetColumns<TEntity>();
             var setString = string.Join(", ", columns.Select(c => $"{c} = @{c}"));
@@ -60,18 +60,18 @@ namespace GameNest.OrderService.DAL.Repositories
             if (_softDelete)
                 query += " AND is_deleted = FALSE";
 
-            var affected = await _connection.ExecuteAsync(query, entity, _transaction);
+            var affected = await _connection.ExecuteAsync(new CommandDefinition(query, entity, _transaction, cancellationToken: ct));
             if (affected == 0)
                 throw new KeyNotFoundException($"{_tableName} with Id {entity.Id} not found");
         }
 
-        public virtual async Task DeleteAsync(Guid id)
+        public virtual async Task DeleteAsync(Guid id, bool softDelete = true, CancellationToken ct = default)
         {
-            var query = _softDelete
+            var query = softDelete
                 ? $"UPDATE {_tableName} SET is_deleted = TRUE WHERE id = @Id"
                 : $"DELETE FROM {_tableName} WHERE id = @Id";
 
-            var affected = await _connection.ExecuteAsync(query, new { Id = id }, _transaction);
+            var affected = await _connection.ExecuteAsync(new CommandDefinition(query, new { Id = id }, _transaction, cancellationToken: ct));
             if (affected == 0)
                 throw new KeyNotFoundException($"{_tableName} with Id {id} not found");
         }
