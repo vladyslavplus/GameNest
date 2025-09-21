@@ -16,10 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\GameNest.OrderService.BLL\GameNest.OrderService.BLL.csproj" />
     <ProjectReference Include="..\GameNest.OrderService.DAL\GameNest.OrderService.DAL.csproj" />
   </ItemGroup>
 

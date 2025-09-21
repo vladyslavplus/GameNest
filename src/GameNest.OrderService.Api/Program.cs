@@ -1,4 +1,10 @@
 using GameNest.OrderService.Api.Extensions;
+using GameNest.OrderService.BLL.Mappings;
+using GameNest.OrderService.BLL.Services;
+using GameNest.OrderService.BLL.Services.Interfaces;
+using GameNest.OrderService.DAL.Repositories;
+using GameNest.OrderService.DAL.Repositories.Interfaces;
+using GameNest.OrderService.DAL.UOW;
 using Npgsql;
 using System.Data;
 using DALConnection = GameNest.OrderService.DAL.Infrastructure.IConnectionFactory;
@@ -6,14 +12,37 @@ using DALConnectionImpl = GameNest.OrderService.DAL.Infrastructure.ConnectionFac
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton(provider =>
+{
+    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+    var config = AutoMapperConfig.RegisterMappings(loggerFactory);
+    return config.CreateMapper(); 
+});
+
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 builder.Host.UseSerilogWithConfiguration();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddScoped<IDbConnection>(_ => new NpgsqlConnection(connectionString));
+builder.Services.AddScoped<IDbConnection>(provider =>
+{
+    var connection = new NpgsqlConnection(connectionString);
+    connection.Open();
+    return connection;
+});
+
 builder.Services.AddSingleton<DALConnection, DALConnectionImpl>();
+
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IPaymentRecordRepository, PaymentRecordRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepositoryAdo>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped<IProductService, ProductService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -27,9 +56,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
-app.Run();
+await app.RunAsync();
