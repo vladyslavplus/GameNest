@@ -22,8 +22,9 @@ namespace GameNest.OrderService.DAL.Infrastructure
         public IDbConnection GetConnection()
         {
             string? connStr = !string.IsNullOrEmpty(_connectionString)
-                ? _connectionString
-                : _configuration.GetConnectionString("DefaultConnection");
+                 ? _connectionString
+                 : _configuration.GetConnectionString("gamenest-orderservice-db") 
+                 ?? _configuration.GetConnectionString("DefaultConnection");
 
             if (string.IsNullOrWhiteSpace(connStr))
                 throw new InvalidOperationException("Connection string is not configured.");

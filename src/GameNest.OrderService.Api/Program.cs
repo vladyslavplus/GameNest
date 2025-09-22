@@ -23,7 +23,8 @@ Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 builder.Host.UseSerilogWithConfiguration();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("gamenest-orderservice-db")
+                      ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddScoped<IDbConnection>(provider =>
 {
