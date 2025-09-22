@@ -42,6 +42,10 @@ builder.Services.AddScoped<IProductRepository, ProductRepositoryAdo>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPaymentRecordService, PaymentRecordService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
