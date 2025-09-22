@@ -1,4 +1,5 @@
 using GameNest.OrderService.Api.Extensions;
+using GameNest.OrderService.Api.Middlewares;
 using GameNest.OrderService.BLL.Mappings;
 using GameNest.OrderService.BLL.Services;
 using GameNest.OrderService.BLL.Services.Interfaces;
@@ -61,6 +62,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 await app.RunAsync();
