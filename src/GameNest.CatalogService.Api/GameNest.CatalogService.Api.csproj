@@ -27,13 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GameNest.CatalogService.BLL\GameNest.CatalogService.BLL.csproj" />
-    <ProjectReference Include="..\..\GameNest.CatalogService.Domain\GameNest.CatalogService.Domain.csproj" />
-    <ProjectReference Include="..\GameNest.CatalogService.DAL\GameNest.CatalogService.DAL.csproj" />
+    <Folder Include="logs\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="logs\" />
+    <ProjectReference Include="..\GameNest.CatalogService.BLL\GameNest.CatalogService.BLL.csproj" />
+    <ProjectReference Include="..\GameNest.CatalogService.DAL\GameNest.CatalogService.DAL.csproj" />
   </ItemGroup>
 
 </Project>

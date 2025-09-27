@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CatalogService.BLL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CatalogService.Domain", "GameNest.CatalogService.Domain\GameNest.CatalogService.Domain.csproj", "{0A7C950B-7D6E-4269-9267-1176DEE94B74}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CatalogService.BLL", "src\GameNest.CatalogService.BLL\GameNest.CatalogService.BLL.csproj", "{118CA234-3580-5A72-44CA-909DFF589117}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CatalogService.Domain", "src\GameNest.CatalogService.Domain\GameNest.CatalogService.Domain.csproj", "{683F77B5-3E96-D68F-3DF9-23754195610B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +69,14 @@ Global
 		{0A7C950B-7D6E-4269-9267-1176DEE94B74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A7C950B-7D6E-4269-9267-1176DEE94B74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A7C950B-7D6E-4269-9267-1176DEE94B74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{118CA234-3580-5A72-44CA-909DFF589117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{118CA234-3580-5A72-44CA-909DFF589117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{118CA234-3580-5A72-44CA-909DFF589117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{118CA234-3580-5A72-44CA-909DFF589117}.Release|Any CPU.Build.0 = Release|Any CPU
+		{683F77B5-3E96-D68F-3DF9-23754195610B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{683F77B5-3E96-D68F-3DF9-23754195610B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{683F77B5-3E96-D68F-3DF9-23754195610B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{683F77B5-3E96-D68F-3DF9-23754195610B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,6 +91,8 @@ Global
 		{344DC113-05D0-4E6A-BA6F-36AA481DEF6C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{4FF386B0-BE83-423C-A843-163467D02F20} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{0A7C950B-7D6E-4269-9267-1176DEE94B74} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{118CA234-3580-5A72-44CA-909DFF589117} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{683F77B5-3E96-D68F-3DF9-23754195610B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BFE9F865-6438-4B5B-A53A-E7ABF9EDEA19}

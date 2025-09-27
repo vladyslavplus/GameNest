@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GameNest.CatalogService.Domain\GameNest.CatalogService.Domain.csproj" />
+    <ProjectReference Include="..\GameNest.CatalogService.Domain\GameNest.CatalogService.Domain.csproj" />
   </ItemGroup>
 
 </Project>
