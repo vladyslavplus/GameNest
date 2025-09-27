@@ -1,0 +1,11 @@
+﻿using GameNest.CatalogService.DAL.Helpers;
+using GameNest.CatalogService.Domain.Entities;
+using GameNest.CatalogService.Domain.Entities.Parameters;
+
+namespace GameNest.CatalogService.DAL.Repositories.Interfaces
+{
+    public interface IRoleRepository : IGenericRepository<Role>
+    {
+        Task<PagedList<Role>> GetRolesPagedAsync(RoleParameters parameters, ISortHelper<Role>? sortHelper = null, CancellationToken cancellationToken = default);
+    }
+}
