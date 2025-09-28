@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\GameNest.CatalogService.Api\GameNest.CatalogService.Api.csproj" />
     <ProjectReference Include="..\GameNest.OrderService.Api\GameNest.OrderService.Api.csproj" />
   </ItemGroup>
 
