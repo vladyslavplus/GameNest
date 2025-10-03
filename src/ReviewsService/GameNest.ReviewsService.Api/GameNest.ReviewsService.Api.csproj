@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,11 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
+    <ProjectReference Include="..\GameNest.ReviewsService.Application\GameNest.ReviewsService.Application.csproj" />
+    <ProjectReference Include="..\GameNest.ReviewsService.Domain\GameNest.ReviewsService.Domain.csproj" />
+    <ProjectReference Include="..\GameNest.ReviewsService.Infrastructure\GameNest.ReviewsService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

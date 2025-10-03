@@ -12,12 +12,14 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.2" />
+    <PackageReference Include="Aspire.Hosting.MongoDB" Version="9.4.2" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.4.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\CatalogService\GameNest.CatalogService.Api\GameNest.CatalogService.Api.csproj" />
     <ProjectReference Include="..\OrderService\GameNest.OrderService.Api\GameNest.OrderService.Api.csproj" />
+    <ProjectReference Include="..\ReviewsService\GameNest.ReviewsService.Api\GameNest.ReviewsService.Api.csproj" />
   </ItemGroup>
 
 </Project>
