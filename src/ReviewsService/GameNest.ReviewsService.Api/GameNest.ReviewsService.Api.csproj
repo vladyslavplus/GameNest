@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\shared\GameNest.ServiceDefaults\GameNest.ServiceDefaults.csproj" />
     <ProjectReference Include="..\GameNest.ReviewsService.Application\GameNest.ReviewsService.Application.csproj" />
     <ProjectReference Include="..\GameNest.ReviewsService.Domain\GameNest.ReviewsService.Domain.csproj" />
     <ProjectReference Include="..\GameNest.ReviewsService.Infrastructure\GameNest.ReviewsService.Infrastructure.csproj" />

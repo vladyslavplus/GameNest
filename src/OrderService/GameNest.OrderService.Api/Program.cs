@@ -1,4 +1,3 @@
-using GameNest.OrderService.Api.Extensions;
 using GameNest.OrderService.Api.Middlewares;
 using GameNest.OrderService.BLL.Mappings;
 using GameNest.OrderService.BLL.Services;
@@ -6,12 +5,17 @@ using GameNest.OrderService.BLL.Services.Interfaces;
 using GameNest.OrderService.DAL.Repositories;
 using GameNest.OrderService.DAL.Repositories.Interfaces;
 using GameNest.OrderService.DAL.UOW;
+using GameNest.ServiceDefaults.Extensions;
 using Npgsql;
 using System.Data;
 using DALConnection = GameNest.OrderService.DAL.Infrastructure.IConnectionFactory;
 using DALConnectionImpl = GameNest.OrderService.DAL.Infrastructure.ConnectionFactory;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
+builder.AddOpenTelemetryTracing();
+builder.Services.AddCorrelationIdForwarding();
 
 builder.Services.AddSingleton(provider =>
 {
@@ -21,8 +25,6 @@ builder.Services.AddSingleton(provider =>
 });
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
-
-builder.Host.UseSerilogWithConfiguration();
 
 var connectionString = builder.Configuration.GetConnectionString("gamenest-orderservice-db")
                       ?? builder.Configuration.GetConnectionString("DefaultConnection");
@@ -61,8 +63,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 await app.RunAsync();

@@ -10,22 +10,14 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.Repositories;
 using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
+using GameNest.ServiceDefaults.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .Enrich.WithEnvironmentName()
-    .Enrich.WithThreadId()
-    .Enrich.WithProperty("Application", "GameNest.CatalogService")
-    .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
-    .CreateLogger();
-
-builder.Host.UseSerilog();
+builder.AddServiceDefaults();
+builder.AddOpenTelemetryTracing();
+builder.Services.AddCorrelationIdForwarding();
 
 builder.Services.AddDbContext<CatalogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -82,7 +74,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<LoggingEnrichmentMiddleware>();
+app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthorization();

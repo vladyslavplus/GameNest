@@ -13,14 +13,21 @@ using GameNest.ReviewsService.Infrastructure.Mongo.Indexes;
 using GameNest.ReviewsService.Infrastructure.Mongo.Seeding;
 using GameNest.ReviewsService.Infrastructure.Mongo.UOW;
 using GameNest.ReviewsService.Infrastructure.Repositories;
+using GameNest.ServiceDefaults.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddLogging();
-builder.Services.AddMemoryCache();
+builder.AddServiceDefaults();
+builder.AddOpenTelemetryTracing();
+builder.Services.AddCorrelationIdForwarding();
 
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
+
+var mongoConnString = builder.Configuration.GetSection("MongoDbSettings")
+    .GetValue<string>("ConnectionString");
+
+builder.Services.AddMongoDbTelemetry(mongoConnString!);
 
 var aspireConn = builder.Configuration.GetConnectionString("mongodb");
 if (!string.IsNullOrEmpty(aspireConn))
@@ -41,8 +48,6 @@ builder.Services.PostConfigure<MongoDbSettings>(options =>
 
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<IIndexCreationService, MongoIndexCreationService>();
-builder.Services.AddHealthChecks()
-    .AddCheck<MongoHealthCheck>("mongodb");
 
 builder.Services.AddScoped<IUnitOfWork>(provider =>
 {
@@ -77,6 +82,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
 
+builder.Services.AddHealthChecks()
+    .AddCheck<MongoHealthCheck>("MONGO_HEALTH");
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -85,11 +93,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
 app.MapHealthChecks("/health");
 
 using (var scope = app.Services.CreateScope())
