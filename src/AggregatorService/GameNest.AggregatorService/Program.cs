@@ -18,7 +18,6 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddServiceDiscovery();
 builder.Services.AddTransient<OrderAggregatorService>();
 builder.Services.AddTransient<GameAggregatorService>();
@@ -28,6 +27,7 @@ builder.Services.AddCorrelationIdHttpClient<OrdersClient>(client =>
 {
     client.BaseAddress = new Uri("http://orderservice-api");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(5); 
 })
 .AddServiceDiscovery();
 
@@ -35,6 +35,7 @@ builder.Services.AddCorrelationIdHttpClient<OrderItemsClient>(client =>
 {
     client.BaseAddress = new Uri("http://orderservice-api");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(5); 
 })
 .AddServiceDiscovery();
 
@@ -42,6 +43,7 @@ builder.Services.AddCorrelationIdHttpClient<CatalogClient>(client =>
 {
     client.BaseAddress = new Uri("http://catalogservice-api");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(10);
 })
 .AddServiceDiscovery();
 
@@ -49,6 +51,7 @@ builder.Services.AddCorrelationIdHttpClient<ReviewsClient>(client =>
 {
     client.BaseAddress = new Uri("http://reviewsservice-api");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(5); 
 })
 .AddServiceDiscovery();
 
