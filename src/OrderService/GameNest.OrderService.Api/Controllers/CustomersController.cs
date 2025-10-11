@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GameNest.OrderService.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Orders/[controller]")]
     [Produces("application/json")]
     public class CustomersController : ControllerBase
     {

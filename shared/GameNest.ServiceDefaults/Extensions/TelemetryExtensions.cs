@@ -28,6 +28,13 @@ namespace GameNest.ServiceDefaults.Extensions
                         .AddAspNetCoreInstrumentation(options =>
                         {
                             options.RecordException = true;
+                            options.EnrichWithHttpRequest = (activity, request) =>
+                            {
+                                if (request.HttpContext.Items.TryGetValue("X-Correlation-Id", out var correlationId))
+                                {
+                                    activity.SetTag("correlation.id", correlationId);
+                                }
+                            };
                         })
                         .AddHttpClientInstrumentation(options =>
                         {
@@ -42,6 +49,7 @@ namespace GameNest.ServiceDefaults.Extensions
                             };
                         })
                         .AddSource("MongoDb.Driver")
+                        .AddSource("Yarp.ReverseProxy")
                         .AddOtlpExporter();
 
                     if (env == "Development")
@@ -59,6 +67,7 @@ namespace GameNest.ServiceDefaults.Extensions
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
+                        .AddMeter("Yarp.ReverseProxy")
                         .AddOtlpExporter();
                 });
 

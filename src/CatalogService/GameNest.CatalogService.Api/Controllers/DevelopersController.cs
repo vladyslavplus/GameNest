@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GameNest.CatalogService.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/Catalog/[controller]")]
     public class DevelopersController : ControllerBase
     {
         private readonly IDeveloperService _developerService;

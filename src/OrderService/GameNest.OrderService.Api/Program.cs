@@ -63,9 +63,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 await app.RunAsync();

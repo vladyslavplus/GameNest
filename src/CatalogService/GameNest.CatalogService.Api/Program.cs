@@ -19,8 +19,11 @@ builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
 
+var connectionString = builder.Configuration.GetConnectionString("gamenest-catalogservice-db")
+                      ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<CatalogDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString!)); 
 
 builder.Services.AddSingleton(provider =>
 {
@@ -74,9 +77,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 await app.RunAsync();

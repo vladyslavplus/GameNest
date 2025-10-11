@@ -1,0 +1,6 @@
+@GameNest.AggregatorService_HostAddress = http://localhost:5262
+
+GET {{GameNest.AggregatorService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GameNest.ReviewsService.Api.Controllers
 {
+    [Route("api/[controller]")]
     public class ReviewsController : BaseApiController
     {
         public ReviewsController(IMediator mediator) : base(mediator)

@@ -21,22 +21,32 @@ builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
 
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
+var aspireConn = builder.Configuration.GetConnectionString("gamenest-reviewservice-db")
+                ?? builder.Configuration.GetConnectionString("mongodb");
 
-var mongoConnString = builder.Configuration.GetSection("MongoDbSettings")
-    .GetValue<string>("ConnectionString");
-
-builder.Services.AddMongoDbTelemetry(mongoConnString!);
-
-var aspireConn = builder.Configuration.GetConnectionString("mongodb");
 if (!string.IsNullOrEmpty(aspireConn))
 {
-    builder.Services.PostConfigure<MongoDbSettings>(options =>
+    builder.Services.Configure<MongoDbSettings>(options =>
     {
         options.ConnectionString = aspireConn;
+        options.DatabaseName = "gamenest-reviewservice-db";
+        options.MaxConnectionPoolSize = 100;
+        options.MinConnectionPoolSize = 5;
+        options.ConnectTimeoutSeconds = 10;
+        options.SocketTimeoutSeconds = 10;
     });
 }
+else
+{
+    builder.Services.Configure<MongoDbSettings>(
+        builder.Configuration.GetSection("MongoDbSettings"));
+}
+
+var mongoConnString = !string.IsNullOrEmpty(aspireConn)
+    ? aspireConn
+    : builder.Configuration.GetSection("MongoDbSettings").GetValue<string>("ConnectionString");
+
+builder.Services.AddMongoDbTelemetry(mongoConnString!);
 
 builder.Services.PostConfigure<MongoDbSettings>(options =>
 {
@@ -93,9 +103,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");

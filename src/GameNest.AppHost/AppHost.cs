@@ -30,6 +30,29 @@ var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("r
     .WaitFor(mongoDb)
     .WithHttpEndpoint(port: 5003, name: "reviews-http")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
-    .WithHttpHealthCheck("/health"); 
+    .WithHttpHealthCheck("/health");
+
+var aggregatorService = builder.AddProject<Projects.GameNest_AggregatorService>("aggregatorservice-api")
+    .WithReference(orderservice)
+    .WithReference(catalogService)
+    .WithReference(reviewsService)
+    .WaitFor(orderservice)
+    .WaitFor(catalogService)
+    .WaitFor(reviewsService)
+    .WithHttpEndpoint(port: 5004, name: "aggregator-http")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+
+builder.AddProject<Projects.GameNest_ApiGateway>("gateway")
+    .WithReference(orderservice)
+    .WithReference(catalogService)
+    .WithReference(reviewsService)
+    .WithReference(aggregatorService)
+    .WaitFor(orderservice)
+    .WaitFor(catalogService)
+    .WaitFor(reviewsService)
+    .WaitFor(aggregatorService)
+    .WithHttpEndpoint(port: 5000, name: "gateway-http")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithHttpHealthCheck("/health");
 
 await builder.Build().RunAsync();
