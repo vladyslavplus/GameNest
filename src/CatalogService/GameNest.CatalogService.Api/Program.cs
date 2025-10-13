@@ -12,6 +12,9 @@ using GameNest.CatalogService.DAL.Repositories;
 using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.ServiceDefaults.Extensions;
+using GameNest.ServiceDefaults.Health;
+using GameNest.ServiceDefaults.Hybrid;
+using GameNest.ServiceDefaults.Memory;
 using GameNest.ServiceDefaults.Redis;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +30,15 @@ var connectionString = builder.Configuration.GetConnectionString("gamenest-catal
 
 builder.Services.AddDbContext<CatalogDbContext>(options =>
     options.UseNpgsql(connectionString!));
+
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1024; 
+    options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
+});
+builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
+builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
+builder.Services.AddSingleton<IHybridCacheService, HybridCacheService>();
 
 builder.Services.AddRedisCache(builder.Configuration);
 
@@ -80,6 +92,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHealthChecks()
+    .AddCheck<CacheHealthCheck>("Cache");
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -99,6 +114,9 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+app.MapHealthChecks("/health");
+
 app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseAuthorization();

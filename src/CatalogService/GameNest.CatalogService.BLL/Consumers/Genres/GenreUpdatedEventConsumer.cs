@@ -1,4 +1,4 @@
-﻿using GameNest.ServiceDefaults.Redis;
+﻿using GameNest.ServiceDefaults.Hybrid;
 using GameNest.Shared.Events.Genres;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -7,11 +7,11 @@ namespace GameNest.CatalogService.BLL.Consumers.Genres
 {
     public class GenreUpdatedEventConsumer : IConsumer<GenreUpdatedEvent>
     {
-        private readonly IRedisCacheService _cacheService;
+        private readonly IHybridCacheService _cacheService;
         private readonly ILogger<GenreUpdatedEventConsumer> _logger;
 
         public GenreUpdatedEventConsumer(
-            IRedisCacheService cacheService,
+            IHybridCacheService cacheService,
             ILogger<GenreUpdatedEventConsumer> logger)
         {
             _cacheService = cacheService;

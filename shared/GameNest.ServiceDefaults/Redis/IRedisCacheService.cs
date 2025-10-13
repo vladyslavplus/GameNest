@@ -1,4 +1,6 @@
-﻿namespace GameNest.ServiceDefaults.Redis
+﻿using StackExchange.Redis;
+
+namespace GameNest.ServiceDefaults.Redis
 {
     public interface IRedisCacheService
     {

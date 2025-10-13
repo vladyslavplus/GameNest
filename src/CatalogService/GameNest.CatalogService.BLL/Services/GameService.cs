@@ -5,6 +5,8 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.ServiceDefaults.Hybrid;
+using GameNest.ServiceDefaults.Memory;
 using GameNest.ServiceDefaults.Redis;
 using GameNest.Shared.Helpers;
 
@@ -14,9 +16,9 @@ namespace GameNest.CatalogService.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IRedisCacheService _cacheService;
+        private readonly IHybridCacheService _cacheService;
 
-        public GameService(IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cacheService)
+        public GameService(IUnitOfWork unitOfWork, IMapper mapper, IHybridCacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -27,57 +29,54 @@ namespace GameNest.CatalogService.BLL.Services
         {
             string cacheKey = GenerateGamesListCacheKey(parameters);
 
-            var cached = await _cacheService.GetDataAsync<PagedListCacheDto<GameDto>>(cacheKey);
-            if (cached != null)
-            {
-                return new PagedList<GameDto>(
-                    cached.Items,
-                    cached.TotalCount,
-                    cached.PageNumber,
-                    cached.PageSize
-                );
-            }
-
-            var gamesPaged = await _unitOfWork.Games.GetGamesPagedAsync(parameters, cancellationToken: cancellationToken);
-            var dtoList = gamesPaged.Select(g => _mapper.Map<GameDto>(g)).ToList();
-
-            var paged = new PagedList<GameDto>(
-                dtoList,
-                gamesPaged.TotalCount,
-                gamesPaged.CurrentPage,
-                gamesPaged.PageSize
+            var cachedDto = await _cacheService.GetOrSetAsync(
+                cacheKey,
+                async () =>
+                {
+                    var gamesPaged = await _unitOfWork.Games.GetGamesPagedAsync(parameters, cancellationToken: cancellationToken);
+                    if (gamesPaged is null || !gamesPaged.Any())
+                    {
+                        return null; 
+                    }
+                    var dtoList = gamesPaged.Select(g => _mapper.Map<GameDto>(g)).ToList();
+                    return new PagedListCacheDto<GameDto>
+                    {
+                        Items = dtoList,
+                        TotalCount = gamesPaged.TotalCount,
+                        PageNumber = gamesPaged.CurrentPage,
+                        PageSize = gamesPaged.PageSize
+                    };
+                },
+                memoryExpiration: TimeSpan.FromSeconds(30),
+                redisExpiration: TimeSpan.FromMinutes(5)
             );
 
-            var cacheDto = new PagedListCacheDto<GameDto>
+            if (cachedDto is null)
             {
-                Items = dtoList,
-                TotalCount = gamesPaged.TotalCount,
-                PageNumber = gamesPaged.CurrentPage,
-                PageSize = gamesPaged.PageSize
-            };
+                return new PagedList<GameDto>(new List<GameDto>(), 0, parameters.PageNumber, parameters.PageSize);
+            }
 
-            await _cacheService.SetDataAsync(cacheKey, cacheDto, TimeSpan.FromMinutes(5));
-
-            return paged;
+            return new PagedList<GameDto>(
+                cachedDto.Items,
+                cachedDto.TotalCount,
+                cachedDto.PageNumber,
+                cachedDto.PageSize
+            );
         }
 
         public async Task<GameDto?> GetGameByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             string cacheKey = $"game:{id}";
 
-            var cached = await _cacheService.GetDataAsync<GameDto>(cacheKey);
-            if (cached != null)
-                return cached;
-
-            var game = await _unitOfWork.Games.GetByIdWithDetailsAsync(id, cancellationToken);
-            if (game == null)
-                return null;
-
-            var dto = _mapper.Map<GameDto>(game);
-
-            await _cacheService.SetDataAsync(cacheKey, dto, TimeSpan.FromMinutes(30));
-
-            return dto;
+            return await _cacheService.GetOrSetAsync(
+                cacheKey,
+                async () => {
+                    var game = await _unitOfWork.Games.GetByIdWithDetailsAsync(id, cancellationToken);
+                    return game is null ? null : _mapper.Map<GameDto>(game);
+                },
+                memoryExpiration: TimeSpan.FromMinutes(2),
+                redisExpiration: TimeSpan.FromMinutes(30)
+            );
         }
 
         public async Task<GameDto> CreateGameAsync(GameCreateDto dto, CancellationToken cancellationToken = default)
@@ -88,7 +87,9 @@ namespace GameNest.CatalogService.BLL.Services
 
             var createdDto = _mapper.Map<GameDto>(game);
 
-            await _cacheService.SetDataAsync($"game:{game.Id}", createdDto, TimeSpan.FromMinutes(30));
+            await _cacheService.SetAsync($"game:{game.Id}", createdDto,
+                memoryExpiration: TimeSpan.FromMinutes(2),
+                redisExpiration: TimeSpan.FromMinutes(30));
 
             await InvalidateGamesListCacheAsync();
 
@@ -108,12 +109,10 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Games.UpdateAsync(game);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var updatedDto = _mapper.Map<GameDto>(game);
-
-            await _cacheService.SetDataAsync($"game:{id}", updatedDto, TimeSpan.FromMinutes(30));
+            await _cacheService.RemoveAsync($"game:{id}");
             await InvalidateGamesListCacheAsync();
 
-            return updatedDto;
+            return _mapper.Map<GameDto>(game);
         }
 
         public async Task DeleteGameAsync(Guid id, CancellationToken cancellationToken = default)
@@ -122,7 +121,7 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Games.DeleteAsync(id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheService.RemoveDataAsync($"game:{id}");
+            await _cacheService.RemoveAsync($"game:{id}");
             await InvalidateGamesListCacheAsync();
         }
 

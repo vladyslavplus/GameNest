@@ -37,6 +37,7 @@ var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("c
     .WaitFor(redis)
     .WaitFor(rabbitmq)
     .WithHttpEndpoint(port: 5002, name: "catalog-http")
+    .WithHttpHealthCheck("/health") 
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("reviewsservice-api")

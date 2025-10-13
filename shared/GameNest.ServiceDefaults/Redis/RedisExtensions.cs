@@ -19,6 +19,7 @@ namespace GameNest.ServiceDefaults.Redis
 
                 var configuration = ConfigurationOptions.Parse(redisConnection);
                 configuration.AbortOnConnectFail = false;
+                configuration.ConnectRetry = 3;
                 configuration.ConnectTimeout = 5000;
                 configuration.SyncTimeout = 5000;
 
