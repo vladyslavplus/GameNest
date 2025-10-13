@@ -11,6 +11,7 @@ using GameNest.CatalogService.DAL.Repositories;
 using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.ServiceDefaults.Extensions;
+using GameNest.ServiceDefaults.Redis;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,9 @@ var connectionString = builder.Configuration.GetConnectionString("gamenest-catal
                       ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<CatalogDbContext>(options =>
-    options.UseNpgsql(connectionString!)); 
+    options.UseNpgsql(connectionString!));
+
+builder.Services.AddRedisCache(builder.Configuration);
 
 builder.Services.AddSingleton(provider =>
 {

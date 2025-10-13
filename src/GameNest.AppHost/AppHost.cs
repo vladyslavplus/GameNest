@@ -13,6 +13,10 @@ var mongoDb = mongo.AddDatabase("gamenest-reviewservice-db");
 var ordersDb = postgres.AddDatabase("gamenest-orderservice-db");
 var catalogDb = postgres.AddDatabase("gamenest-catalogservice-db");
 
+var redis = builder.AddRedis("redis")
+    .WithDataVolume()
+    .WithRedisCommander();
+
 var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("orderservice-api")
     .WithReference(ordersDb)
     .WaitFor(ordersDb)
@@ -21,7 +25,9 @@ var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("order
 
 var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("catalogservice-api")
     .WithReference(catalogDb)
+    .WithReference(redis)
     .WaitFor(catalogDb)
+    .WaitFor(redis)
     .WithHttpEndpoint(port: 5002, name: "catalog-http")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
