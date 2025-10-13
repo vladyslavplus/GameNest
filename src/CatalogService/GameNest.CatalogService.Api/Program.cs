@@ -1,4 +1,5 @@
 using GameNest.CatalogService.Api.Middlewares;
+using GameNest.CatalogService.BLL.Consumers.Genres;
 using GameNest.CatalogService.BLL.Extensions;
 using GameNest.CatalogService.BLL.MappingProfiles;
 using GameNest.CatalogService.BLL.Services;
@@ -12,6 +13,7 @@ using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.ServiceDefaults.Redis;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,19 @@ builder.Services.AddDbContext<CatalogDbContext>(options =>
     options.UseNpgsql(connectionString!));
 
 builder.Services.AddRedisCache(builder.Configuration);
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<GenreUpdatedEventConsumer>();
+    x.AddConsumer<GenreDeletedEventConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration.GetConnectionString("rabbitmq"));
+        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddSingleton(provider =>
 {

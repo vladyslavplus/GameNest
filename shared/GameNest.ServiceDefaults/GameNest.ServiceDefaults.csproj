@@ -29,6 +29,9 @@
 		<PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.10" />
 		<PackageReference Include="StackExchange.Redis" Version="2.8.58" />
+
+		<PackageReference Include="MassTransit" Version="8.5.4" />
+		<PackageReference Include="MassTransit.RabbitMQ" Version="8.5.1" />
 	</ItemGroup>
 
 

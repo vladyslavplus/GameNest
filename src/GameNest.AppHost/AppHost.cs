@@ -17,6 +17,12 @@ var redis = builder.AddRedis("redis")
     .WithDataVolume()
     .WithRedisCommander();
 
+var rabbitmq = builder.AddRabbitMQ("rabbitmq",
+        userName: builder.AddParameter("username", "admin", secret: true),
+        password: builder.AddParameter("password", "admin123", secret: true))
+    .WithManagementPlugin()
+    .WithDataVolume();
+
 var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("orderservice-api")
     .WithReference(ordersDb)
     .WaitFor(ordersDb)
@@ -26,8 +32,10 @@ var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("order
 var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("catalogservice-api")
     .WithReference(catalogDb)
     .WithReference(redis)
+    .WithReference(rabbitmq)
     .WaitFor(catalogDb)
     .WaitFor(redis)
+    .WaitFor(rabbitmq)
     .WithHttpEndpoint(port: 5002, name: "catalog-http")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
