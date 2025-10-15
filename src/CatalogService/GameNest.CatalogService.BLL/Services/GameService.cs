@@ -133,11 +133,11 @@ namespace GameNest.CatalogService.BLL.Services
             return game;
         }
 
-        private static string GenerateGamesListCacheKey(GameParameters parameters)
+        public static string GenerateGamesListCacheKey(GameParameters parameters)
         {
             return $"games:page:{parameters.PageNumber}"
                  + $":size:{parameters.PageSize}"
-                 + $":order:{parameters.OrderBy ?? "default"}"
+                 + $":order:{parameters.OrderBy ?? "Id"}"
                  + $":title:{parameters.Title ?? ""}"
                  + $":minPrice:{parameters.MinPrice?.ToString() ?? ""}"
                  + $":maxPrice:{parameters.MaxPrice?.ToString() ?? ""}"

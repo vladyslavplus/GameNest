@@ -9,8 +9,7 @@ namespace GameNest.CatalogService.BLL.MappingProfiles
         public static MapperConfiguration RegisterMappings(ILoggerFactory loggerFactory)
         {
             var config = new MapperConfigurationExpression();
-            config.AddMaps(Assembly.GetExecutingAssembly());
-
+            config.AddMaps(AppDomain.CurrentDomain.GetAssemblies());
             return new MapperConfiguration(config, loggerFactory);
         }
     }

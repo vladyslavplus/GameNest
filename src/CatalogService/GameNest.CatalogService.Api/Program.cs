@@ -1,4 +1,5 @@
 using GameNest.CatalogService.Api.Middlewares;
+using GameNest.CatalogService.BLL.Cache;
 using GameNest.CatalogService.BLL.Consumers.Genres;
 using GameNest.CatalogService.BLL.Extensions;
 using GameNest.CatalogService.BLL.MappingProfiles;
@@ -11,13 +12,16 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.Repositories;
 using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
+using GameNest.CatalogService.Grpc.Services;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.ServiceDefaults.Health;
 using GameNest.ServiceDefaults.Hybrid;
+using GameNest.ServiceDefaults.Interfaces;
 using GameNest.ServiceDefaults.Memory;
 using GameNest.ServiceDefaults.Redis;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +66,13 @@ builder.Services.AddSingleton(provider =>
     return config.CreateMapper();
 });
 
+builder.Services.AddGrpc(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.MaxReceiveMessageSize = 16 * 1024 * 1024;
+    options.MaxSendMessageSize = 16 * 1024 * 1024;
+});
+
 builder.Services.AddFluentValidationSetup(typeof(GameCreateDtoValidator).Assembly);
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -88,6 +99,9 @@ builder.Services.AddScoped<IGamePlatformService, GamePlatformService>();
 builder.Services.AddScoped<IGameGenreService, GameGenreService>();
 builder.Services.AddScoped<IGameDeveloperRoleService, GameDeveloperRoleService>();
 
+builder.Services.AddScoped<ICachePreloader, GameCachePreloader>();
+builder.Services.AddCacheBackgroundJobs();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -101,7 +115,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
     await db.Database.MigrateAsync();
-    await CatalogDbSeeder.SeedAsync(db); 
+    await CatalogDbSeeder.SeedAsync(db);
+
+    var preloader = scope.ServiceProvider.GetRequiredService<ICachePreloader>();
+    await preloader.PreloadAsync(CancellationToken.None);
 }
 
 if (app.Environment.IsDevelopment())
@@ -121,4 +138,7 @@ app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGrpcService<GameGrpcServiceImpl>();
+
 await app.RunAsync();

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option csharp_namespace = "GameNest.Grpc.Games";
+
+package games;
+
+service GameGrpcService {
+  rpc GetGamesPaged (GetGamesRequest) returns (PagedGamesResponse);
+  rpc GetGameById (GetGameByIdRequest) returns (GameResponse);
+}
+
+message GetGamesRequest {
+  int32 pageNumber = 1;
+  int32 pageSize = 2;
+  string orderBy = 3;
+  string title = 4;
+  double minPrice = 5;
+  double maxPrice = 6;
+  string publisherId = 7;
+}
+
+message GetGameByIdRequest {
+  string id = 1;
+}
+
+message GameResponse {
+  Game game = 1;
+}
+
+message PagedGamesResponse {
+  repeated Game items = 1;
+  int32 totalCount = 2;
+  int32 pageNumber = 3;
+  int32 pageSize = 4;
+}
+
+message Game {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  double price = 4;
+  string releaseDate = 5;
+  string publisherId = 6;
+  string publisherName = 7;
+  repeated string genres = 8;
+  repeated string platforms = 9;
+  repeated string developers = 10;
+}

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>
@@ -34,6 +35,7 @@
     <ProjectReference Include="..\..\..\shared\GameNest.ServiceDefaults\GameNest.ServiceDefaults.csproj" />
     <ProjectReference Include="..\GameNest.CatalogService.BLL\GameNest.CatalogService.BLL.csproj" />
     <ProjectReference Include="..\GameNest.CatalogService.DAL\GameNest.CatalogService.DAL.csproj" />
+    <ProjectReference Include="..\GameNest.CatalogService.Grpc\GameNest.CatalogService.Grpc.csproj" />
   </ItemGroup>
 
 </Project>

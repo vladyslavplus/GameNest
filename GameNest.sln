@@ -49,6 +49,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.AggregatorService"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.Shared", "shared\GameNest.Shared\GameNest.Shared.csproj", "{A50DEF2F-F0B5-484B-937D-BD184DD82AC9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.GrpcContracts", "shared\GameNest.GrpcContracts\GameNest.GrpcContracts.csproj", "{7DFB59F4-0395-48AC-BDF9-8A089B911565}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CatalogService.Grpc", "src\CatalogService\GameNest.CatalogService.Grpc\GameNest.CatalogService.Grpc.csproj", "{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +127,14 @@ Global
 		{A50DEF2F-F0B5-484B-937D-BD184DD82AC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A50DEF2F-F0B5-484B-937D-BD184DD82AC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A50DEF2F-F0B5-484B-937D-BD184DD82AC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DFB59F4-0395-48AC-BDF9-8A089B911565}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DFB59F4-0395-48AC-BDF9-8A089B911565}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DFB59F4-0395-48AC-BDF9-8A089B911565}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DFB59F4-0395-48AC-BDF9-8A089B911565}.Release|Any CPU.Build.0 = Release|Any CPU
+		{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +161,8 @@ Global
 		{76505B7D-4826-4404-9207-56775A5817B5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{3B1279BC-1333-4BF6-A017-452D0741D65A} = {76505B7D-4826-4404-9207-56775A5817B5}
 		{A50DEF2F-F0B5-484B-937D-BD184DD82AC9} = {92C0D404-BB24-4D8D-9141-B3F2F378A11E}
+		{7DFB59F4-0395-48AC-BDF9-8A089B911565} = {92C0D404-BB24-4D8D-9141-B3F2F378A11E}
+		{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0} = {04DA8391-0D7F-4D12-9AAF-E8FF2918CF4D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BFE9F865-6438-4B5B-A53A-E7ABF9EDEA19}
