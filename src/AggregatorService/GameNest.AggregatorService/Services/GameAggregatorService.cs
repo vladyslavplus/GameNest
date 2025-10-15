@@ -1,18 +1,21 @@
 ﻿using GameNest.AggregatorService.Clients;
 using GameNest.AggregatorService.DTOs.Aggregated;
+using GameNest.AggregatorService.DTOs.Catalog;
 using GameNest.AggregatorService.DTOs.Reviews;
+using Grpc.Core;
+using System.Globalization;
 
 namespace GameNest.AggregatorService.Services
 {
     public class GameAggregatorService
     {
-        private readonly CatalogClient _catalogClient;
-        private readonly ReviewsClient _reviewsClient;
+        private readonly CatalogGrpcClient _catalogClient;
+        private readonly ReviewsGrpcClient _reviewsClient;
         private readonly ILogger<GameAggregatorService> _logger;
 
         public GameAggregatorService(
-            CatalogClient catalogClient,
-            ReviewsClient reviewsClient,
+            CatalogGrpcClient catalogClient,
+            ReviewsGrpcClient reviewsClient,
             ILogger<GameAggregatorService> logger)
         {
             _catalogClient = catalogClient;
@@ -36,12 +39,12 @@ namespace GameNest.AggregatorService.Services
                 foreach (var game in games)
                 {
                     var warnings = new List<string>();
-                    List<ReviewDto> reviewList = new();
+                    var reviewList = new List<Grpc.Reviews.Review>();
 
                     try
                     {
-                        var reviews = await _reviewsClient.GetReviewsByGameIdAsync(game.Id.ToString(), ct);
-                        reviewList = reviews?.ToList() ?? new List<ReviewDto>();
+                        var reviews = await _reviewsClient.GetReviewsByGameIdAsync(game.Id, ct);
+                        reviewList = reviews?.ToList() ?? new List<Grpc.Reviews.Review>();
 
                         if (reviews is null)
                         {
@@ -49,15 +52,10 @@ namespace GameNest.AggregatorService.Services
                             _logger.LogWarning("Reviews service returned null for GameId {GameId}", game.Id);
                         }
                     }
-                    catch (HttpRequestException ex)
+                    catch (RpcException ex)
                     {
-                        warnings.Add($"Reviews service is unavailable for game '{game.Title}'. Error: {ex.Message}");
-                        _logger.LogError(ex, "Failed to fetch reviews for GameId {GameId} due to HTTP error", game.Id);
-                    }
-                    catch (TaskCanceledException ex)
-                    {
-                        warnings.Add($"Request to reviews service timed out for game '{game.Title}'.");
-                        _logger.LogError(ex, "Request to reviews service timed out for GameId {GameId}", game.Id);
+                        warnings.Add($"Reviews service is unavailable for game '{game.Title}'. Error: {ex.Status.Detail}");
+                        _logger.LogError(ex, "Failed to fetch reviews for GameId {GameId} due to gRPC error", game.Id);
                     }
                     catch (Exception ex)
                     {
@@ -66,21 +64,26 @@ namespace GameNest.AggregatorService.Services
                     }
 
                     var averageRating = reviewList.Any()
-                        ? reviewList.Average(r => r.Rating?.Value ?? 0)
+                        ? reviewList.Average(r => r.Rating)
                         : (double?)null;
 
                     var dto = new AggregatedGameDto
                     {
-                        Id = game.Id,
+                        Id = Guid.Parse(game.Id),
                         Title = game.Title,
                         Description = game.Description,
-                        ReleaseDate = game.ReleaseDate,
-                        Price = game.Price,
-                        Publisher = game.Publisher,
-                        Genres = game.Genres,
-                        Platforms = game.Platforms,
+                        ReleaseDate = ParseDate(game.ReleaseDate),
+                        Price = (decimal)game.Price,
+                        Publisher = string.IsNullOrEmpty(game.PublisherName)
+                            ? null
+                            : new PublisherDto
+                            {
+                                Name = game.PublisherName
+                            },
+                        Genres = game.Genres.ToList(),
+                        Platforms = game.Platforms.ToList(),
 
-                        Reviews = reviewList,
+                        Reviews = reviewList.Select(MapReviewToDto).ToList(),
                         ReviewCount = reviewList.Count,
                         AverageRating = averageRating,
 
@@ -101,7 +104,7 @@ namespace GameNest.AggregatorService.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to fetch games from catalog service");
-                throw; 
+                throw;
             }
         }
 
@@ -117,12 +120,12 @@ namespace GameNest.AggregatorService.Services
                 }
 
                 var warnings = new List<string>();
-                List<ReviewDto> reviewList = new();
+                var reviewList = new List<GameNest.Grpc.Reviews.Review>();
 
                 try
                 {
-                    var reviews = await _reviewsClient.GetReviewsByGameIdAsync(game.Id.ToString(), ct);
-                    reviewList = reviews?.ToList() ?? new List<ReviewDto>();
+                    var reviews = await _reviewsClient.GetReviewsByGameIdAsync(game.Id, ct);
+                    reviewList = reviews?.ToList() ?? new List<GameNest.Grpc.Reviews.Review>();
 
                     if (reviews is null)
                     {
@@ -130,15 +133,10 @@ namespace GameNest.AggregatorService.Services
                         _logger.LogWarning("Reviews service returned null for GameId {GameId}", game.Id);
                     }
                 }
-                catch (HttpRequestException ex)
+                catch (RpcException ex)
                 {
-                    warnings.Add($"Reviews service is unavailable. Error: {ex.Message}");
-                    _logger.LogError(ex, "Failed to fetch reviews for GameId {GameId} due to HTTP error", game.Id);
-                }
-                catch (TaskCanceledException ex)
-                {
-                    warnings.Add($"Request to reviews service timed out.");
-                    _logger.LogError(ex, "Request to reviews service timed out for GameId {GameId}", game.Id);
+                    warnings.Add($"Reviews service is unavailable. Error: {ex.Status.Detail}");
+                    _logger.LogError(ex, "Failed to fetch reviews for GameId {GameId} due to gRPC error", game.Id);
                 }
                 catch (Exception ex)
                 {
@@ -147,21 +145,26 @@ namespace GameNest.AggregatorService.Services
                 }
 
                 var averageRating = reviewList.Any()
-                    ? reviewList.Average(r => r.Rating?.Value ?? 0)
+                    ? reviewList.Average(r => r.Rating)
                     : (double?)null;
 
                 var dto = new AggregatedGameDto
                 {
-                    Id = game.Id,
+                    Id = Guid.Parse(game.Id),
                     Title = game.Title,
                     Description = game.Description,
-                    ReleaseDate = game.ReleaseDate,
-                    Price = game.Price,
-                    Publisher = game.Publisher,
-                    Genres = game.Genres,
-                    Platforms = game.Platforms,
+                    ReleaseDate = ParseDate(game.ReleaseDate),
+                    Price = (decimal)game.Price,
+                    Publisher = string.IsNullOrEmpty(game.PublisherName)
+                        ? null
+                        : new PublisherDto
+                        {
+                            Name = game.PublisherName
+                        },
+                    Genres = game.Genres.ToList(),
+                    Platforms = game.Platforms.ToList(),
 
-                    Reviews = reviewList,
+                    Reviews = reviewList.Select(MapReviewToDto).ToList(),
                     ReviewCount = reviewList.Count,
                     AverageRating = averageRating,
 
@@ -181,6 +184,40 @@ namespace GameNest.AggregatorService.Services
                 _logger.LogError(ex, "Failed to fetch game {GameId} from catalog service", gameId);
                 throw;
             }
+        }
+
+        private static ReviewDto MapReviewToDto(Grpc.Reviews.Review review)
+        {
+            return new ReviewDto
+            {
+                Id = review.Id,
+                GameId = review.GameId,
+                CustomerId = review.CustomerId,
+                Rating = new RatingDto { Value = review.Rating },
+                Text = new TextDto
+                {
+                    Value = review.Text,
+                    WordCount = review.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length ?? 0,
+                    IsLongReview = (review.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length ?? 0) > 50
+                },
+                Replies = review.Replies.Select(r => new ReplyDto
+                {
+                    Id = r.Id,
+                    CustomerId = r.CustomerId,
+                    Text = r.Text
+                }).ToList()
+            };
+        }
+
+        private static DateTime? ParseDate(string? dateString)
+        {
+            if (string.IsNullOrWhiteSpace(dateString))
+                return null;
+
+            if (DateTime.TryParse(dateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                return date;
+
+            return null;
         }
     }
 }

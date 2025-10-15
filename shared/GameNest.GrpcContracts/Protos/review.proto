@@ -1,6 +1,6 @@
 syntax = "proto3";
 option csharp_namespace = "GameNest.Grpc.Reviews";
-package reviews;
+package review;
 
 service ReviewGrpcService {
   rpc GetReviews (GetReviewsRequest) returns (PagedReviewsResponse);

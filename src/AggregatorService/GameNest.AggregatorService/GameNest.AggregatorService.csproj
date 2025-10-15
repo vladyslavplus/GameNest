@@ -8,13 +8,23 @@
 
   <ItemGroup>
 	<PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+	  <PackageReference Include="Grpc.Tools" Version="2.72.0">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="8.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.19" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\shared\GameNest.GrpcContracts\GameNest.GrpcContracts.csproj" />
     <ProjectReference Include="..\..\..\shared\GameNest.ServiceDefaults\GameNest.ServiceDefaults.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\game.proto" Link="Protos\game.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\review.proto" Link="Protos\review.proto" GrpcServices="Client" />
+	</ItemGroup>
 
 </Project>

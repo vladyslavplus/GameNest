@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\reviews.proto" Link="Protos\reviews.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\review.proto" Link="Protos\review.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 </Project>
