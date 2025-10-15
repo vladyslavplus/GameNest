@@ -45,8 +45,9 @@ var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("r
     .WithReference(mongoDb)
     .WaitFor(mongoDb)
     .WithHttpEndpoint(port: 5003, name: "reviews-http")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
-    .WithHttpHealthCheck("/health");
+    .WithHttpsEndpoint(port: 7047, name: "reviews-https") 
+    .WithHttpHealthCheck("/health")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 var aggregatorService = builder.AddProject<Projects.GameNest_AggregatorService>("aggregatorservice-api")
     .WithReference(orderservice)

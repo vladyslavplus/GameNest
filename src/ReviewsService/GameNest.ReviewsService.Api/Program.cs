@@ -6,6 +6,7 @@ using GameNest.ReviewsService.Application.Services;
 using GameNest.ReviewsService.Application.Validators.Comments;
 using GameNest.ReviewsService.Domain.Interfaces.Repositories;
 using GameNest.ReviewsService.Domain.Interfaces.Services;
+using GameNest.ReviewsService.Grpc.Services;
 using GameNest.ReviewsService.Infrastructure.Mongo.Configuration;
 using GameNest.ReviewsService.Infrastructure.Mongo.Context;
 using GameNest.ReviewsService.Infrastructure.Mongo.HealthChecks;
@@ -86,6 +87,13 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddValidatorsFromAssembly(typeof(GetCommentsQueryValidator).Assembly);
 
+builder.Services.AddGrpc(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.MaxReceiveMessageSize = 16 * 1024 * 1024;
+    options.MaxSendMessageSize = 16 * 1024 * 1024;
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -96,6 +104,15 @@ builder.Services.AddHealthChecks()
     .AddCheck<MongoHealthCheck>("MONGO_HEALTH");
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var indexService = scope.ServiceProvider.GetRequiredService<IIndexCreationService>();
+    await indexService.CreateIndexesAsync();
+
+    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+    await seeder.SeedAsync();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -112,15 +129,8 @@ app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGrpcService<ReviewGrpcServiceImpl>();
+
 app.MapHealthChecks("/health");
-
-using (var scope = app.Services.CreateScope())
-{
-    var indexService = scope.ServiceProvider.GetRequiredService<IIndexCreationService>();
-    await indexService.CreateIndexesAsync();
-
-    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
-    await seeder.SeedAsync();
-}
-
 await app.RunAsync();
