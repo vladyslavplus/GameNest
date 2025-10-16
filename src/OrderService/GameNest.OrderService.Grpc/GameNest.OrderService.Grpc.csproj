@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+		<PackageReference Include="Grpc.Tools" Version="2.72.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\..\..\shared\GameNest.GrpcContracts\GameNest.GrpcContracts.csproj" />
+    <ProjectReference Include="..\GameNest.OrderService.BLL\GameNest.OrderService.BLL.csproj" />
+    <ProjectReference Include="..\GameNest.OrderService.Domain\GameNest.OrderService.Domain.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\order.proto" Link="Protos\order.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\orderitem.proto" Link="Protos\orderitem.proto" GrpcServices="Server" />
+	</ItemGroup>
+
+</Project>

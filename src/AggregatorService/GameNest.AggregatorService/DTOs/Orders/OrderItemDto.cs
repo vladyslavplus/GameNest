@@ -4,11 +4,14 @@ namespace GameNest.AggregatorService.DTOs.Orders
 {
     public class OrderItemDto
     {
-        [JsonPropertyName("product_Id")]
-        public Guid ProductId { get; set; }
+        [JsonPropertyName("id")]
+        public Guid Id { get; set; }
 
         [JsonPropertyName("order_Id")]
         public Guid OrderId { get; set; }
+
+        [JsonPropertyName("product_Id")]
+        public Guid ProductId { get; set; }
 
         [JsonPropertyName("quantity")]
         public int Quantity { get; set; }
@@ -16,7 +19,7 @@ namespace GameNest.AggregatorService.DTOs.Orders
         [JsonPropertyName("price")]
         public decimal Price { get; set; }
 
-        [JsonIgnore] 
+        [JsonIgnore]
         public decimal Total => Quantity * Price;
     }
 }

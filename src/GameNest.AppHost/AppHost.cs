@@ -27,6 +27,7 @@ var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("order
     .WithReference(ordersDb)
     .WaitFor(ordersDb)
     .WithHttpEndpoint(port: 5001, name: "orders-http")
+    .WithHttpsEndpoint(port: 7045, name: "order-https")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("catalogservice-api")
@@ -37,7 +38,7 @@ var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("c
     .WaitFor(redis)
     .WaitFor(rabbitmq)
     .WithHttpEndpoint(port: 5002, name: "catalog-http")
-    .WithHttpsEndpoint(port: 7046, name: "catalog-https")
+    .WithHttpsEndpoint(port: 7048, name: "catalog-https")
     .WithHttpHealthCheck("/health") 
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 

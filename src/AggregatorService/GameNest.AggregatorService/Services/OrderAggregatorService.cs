@@ -1,16 +1,20 @@
 ﻿using GameNest.AggregatorService.Clients;
 using GameNest.AggregatorService.DTOs.Aggregated;
 using GameNest.AggregatorService.DTOs.Orders;
+using System.Globalization;
 
 namespace GameNest.AggregatorService.Services
 {
     public class OrderAggregatorService
     {
-        private readonly OrdersClient _ordersClient;
-        private readonly OrderItemsClient _orderItemsClient;
+        private readonly OrdersGrpcClient _ordersClient;
+        private readonly OrderItemsGrpcClient _orderItemsClient;
         private readonly ILogger<OrderAggregatorService> _logger;
 
-        public OrderAggregatorService(OrdersClient ordersClient, OrderItemsClient orderItemsClient, ILogger<OrderAggregatorService> logger)
+        public OrderAggregatorService(
+            OrdersGrpcClient ordersClient,
+            OrderItemsGrpcClient orderItemsClient,
+            ILogger<OrderAggregatorService> logger)
         {
             _ordersClient = ordersClient;
             _orderItemsClient = orderItemsClient;
@@ -19,25 +23,26 @@ namespace GameNest.AggregatorService.Services
 
         public async Task<AggregatedOrderDto?> GetAggregatedOrderAsync(Guid orderId, CancellationToken ct)
         {
-            var order = await _ordersClient.GetOrderByIdAsync(orderId, ct);
+            var order = await _ordersClient.GetOrderByIdAsync(orderId.ToString(), ct);
             if (order == null)
             {
                 _logger.LogWarning("Order {OrderId} not found", orderId);
                 return null;
             }
 
-            var items = await _orderItemsClient.GetByOrderIdAsync(orderId, ct) ?? new List<OrderItemDto>();
+            var items = await _orderItemsClient.GetOrderItemsByOrderIdAsync(orderId.ToString(), ct)
+                        ?? new List<OrderItemDto>();
 
             var itemsList = items.ToList();
             var itemCount = itemsList.Count;
 
-            var dto = new AggregatedOrderDto
+            return new AggregatedOrderDto
             {
-                Id = order.Id,
-                CustomerId = order.CustomerId,
-                OrderDate = order.OrderDate,
+                Id = Guid.Parse(order.Id),
+                CustomerId = Guid.Parse(order.CustomerId),
+                OrderDate = DateTime.Parse(order.OrderDate, CultureInfo.InvariantCulture),
                 Status = order.Status,
-                TotalAmount = order.TotalAmount,
+                TotalAmount = (decimal)order.TotalAmount, 
                 Items = itemsList,
                 ItemCount = itemCount,
                 PartialData = itemCount == 0,
@@ -45,8 +50,6 @@ namespace GameNest.AggregatorService.Services
                 ResponseTimestamp = DateTime.UtcNow,
                 Summary = $"Order {order.Id}, {itemCount} items, Total: {order.TotalAmount:N2} ₴"
             };
-
-            return dto;
         }
     }
 }

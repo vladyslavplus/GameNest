@@ -1,7 +1,5 @@
 syntax = "proto3";
-
 option csharp_namespace = "GameNest.Grpc.Games";
-
 package games;
 
 service GameGrpcService {

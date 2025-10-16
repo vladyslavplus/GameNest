@@ -3,6 +3,8 @@ using GameNest.AggregatorService.Services;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.Grpc.Games;
 using GameNest.Grpc.Reviews;
+using GameNest.Grpc.Orders;
+using GameNest.Grpc.OrderItems;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +30,7 @@ builder.Services.AddGrpcClient<GameGrpcService.GameGrpcServiceClient>(options =>
 })
 .ConfigureChannel(channelOptions =>
 {
-    channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024; 
+    channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
     channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
 })
 .AddServiceDiscovery();
@@ -44,28 +46,37 @@ builder.Services.AddGrpcClient<ReviewGrpcService.ReviewGrpcServiceClient>(option
 })
 .AddServiceDiscovery();
 
+builder.Services.AddGrpcClient<OrderGrpcService.OrderGrpcServiceClient>(options =>
+{
+    options.Address = new Uri("https://orderservice-api");
+})
+.ConfigureChannel(channelOptions =>
+{
+    channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
+    channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
+})
+.AddServiceDiscovery();
+
+builder.Services.AddGrpcClient<OrderItemGrpcService.OrderItemGrpcServiceClient>(options =>
+{
+    options.Address = new Uri("https://orderservice-api");
+})
+.ConfigureChannel(channelOptions =>
+{
+    channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
+    channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
+})
+.AddServiceDiscovery();
+
 builder.Services.AddScoped<CatalogGrpcClient>();
 builder.Services.AddScoped<ReviewsGrpcClient>();
+builder.Services.AddScoped<OrdersGrpcClient>();
+builder.Services.AddScoped<OrderItemsGrpcClient>();
 
 builder.Services.AddTransient<OrderAggregatorService>();
 builder.Services.AddTransient<GameAggregatorService>();
+
 builder.Services.AddCorrelationIdForwarding();
-
-builder.Services.AddCorrelationIdHttpClient<OrdersClient>(client =>
-{
-    client.BaseAddress = new Uri("http://orderservice-api");
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-    client.Timeout = TimeSpan.FromSeconds(5);
-})
-.AddServiceDiscovery();
-
-builder.Services.AddCorrelationIdHttpClient<OrderItemsClient>(client =>
-{
-    client.BaseAddress = new Uri("http://orderservice-api");
-    client.DefaultRequestHeaders.Add("Accept", "application/json");
-    client.Timeout = TimeSpan.FromSeconds(5);
-})
-.AddServiceDiscovery();
 
 var app = builder.Build();
 

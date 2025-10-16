@@ -1,0 +1,37 @@
+syntax = "proto3";
+option csharp_namespace = "GameNest.Grpc.OrderItems";
+package orderitems;
+
+service OrderItemGrpcService {
+  rpc GetAllOrderItems (GetAllOrderItemsRequest) returns (OrderItemsResponse);
+  rpc GetOrderItemById (GetOrderItemByIdRequest) returns (OrderItemResponse);
+  rpc GetOrderItemsByOrderId (GetOrderItemsByOrderIdRequest) returns (OrderItemsResponse);
+}
+
+message GetAllOrderItemsRequest {}
+
+message GetOrderItemByIdRequest {
+  string id = 1;
+}
+
+message GetOrderItemsByOrderIdRequest {
+  string orderId = 1;
+}
+
+message OrderItemsResponse {
+  repeated OrderItem items = 1;
+}
+
+message OrderItemResponse {
+  OrderItem orderItem = 1;
+}
+
+message OrderItem {
+  string id = 1;
+  string orderId = 2;
+  string productId = 3;
+  int32 quantity = 4;
+  double price = 5;
+  string createdAt = 6;
+  string updatedAt = 7;
+}

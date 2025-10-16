@@ -55,6 +55,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CatalogService.Grp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.ReviewsService.Grpc", "src\ReviewsService\GameNest.ReviewsService.Grpc\GameNest.ReviewsService.Grpc.csproj", "{147B58A9-6F6E-43FB-8D7E-D5A846E0A482}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.OrderService.Grpc", "src\OrderService\GameNest.OrderService.Grpc\GameNest.OrderService.Grpc.csproj", "{1AEDD36C-FA04-49DE-BB91-C950AA215EF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +143,10 @@ Global
 		{147B58A9-6F6E-43FB-8D7E-D5A846E0A482}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{147B58A9-6F6E-43FB-8D7E-D5A846E0A482}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{147B58A9-6F6E-43FB-8D7E-D5A846E0A482}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AEDD36C-FA04-49DE-BB91-C950AA215EF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AEDD36C-FA04-49DE-BB91-C950AA215EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AEDD36C-FA04-49DE-BB91-C950AA215EF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AEDD36C-FA04-49DE-BB91-C950AA215EF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,6 +176,7 @@ Global
 		{7DFB59F4-0395-48AC-BDF9-8A089B911565} = {92C0D404-BB24-4D8D-9141-B3F2F378A11E}
 		{417AF49A-AB8B-4A04-B7F5-4A1067F4C0B0} = {04DA8391-0D7F-4D12-9AAF-E8FF2918CF4D}
 		{147B58A9-6F6E-43FB-8D7E-D5A846E0A482} = {B5035B74-F221-4003-96AD-0BD2E9B4907D}
+		{1AEDD36C-FA04-49DE-BB91-C950AA215EF3} = {580A863D-3884-4D20-AF21-8212795C16DB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BFE9F865-6438-4B5B-A53A-E7ABF9EDEA19}

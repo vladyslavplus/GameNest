@@ -25,6 +25,8 @@
 	<ItemGroup>
 		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\game.proto" Link="Protos\game.proto" GrpcServices="Client" />
 		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\review.proto" Link="Protos\review.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\order.proto" Link="Protos\order.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\..\shared\GameNest.GrpcContracts\Protos\orderitem.proto" Link="Protos\orderitem.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 </Project>

@@ -5,6 +5,7 @@ using GameNest.OrderService.BLL.Services.Interfaces;
 using GameNest.OrderService.DAL.Repositories;
 using GameNest.OrderService.DAL.Repositories.Interfaces;
 using GameNest.OrderService.DAL.UOW;
+using GameNest.OrderService.Grpc.Services;
 using GameNest.ServiceDefaults.Extensions;
 using Npgsql;
 using System.Data;
@@ -51,6 +52,13 @@ builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentRecordService, PaymentRecordService>();
 
+builder.Services.AddGrpc(options =>
+{
+    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+    options.MaxReceiveMessageSize = 16 * 1024 * 1024; 
+    options.MaxSendMessageSize = 16 * 1024 * 1024;
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -71,4 +79,8 @@ app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+
+app.MapGrpcService<OrderGrpcServiceImpl>();
+app.MapGrpcService<OrderItemGrpcServiceImpl>();
+
 await app.RunAsync();

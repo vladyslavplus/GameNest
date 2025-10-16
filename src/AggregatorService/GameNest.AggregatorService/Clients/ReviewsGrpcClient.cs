@@ -25,7 +25,7 @@ namespace GameNest.AggregatorService.Clients
                 {
                     GameId = gameId,
                     PageNumber = 1,
-                    PageSize = 1000 // Або скільки вам потрібно
+                    PageSize = 1000 
                 };
 
                 var response = await _client.GetReviewsAsync(request, cancellationToken: ct);
