@@ -7,8 +7,6 @@ using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Domain.Entities.Parameters;
 using GameNest.ServiceDefaults.Hybrid;
-using GameNest.ServiceDefaults.Memory;
-using GameNest.ServiceDefaults.Redis;
 using GameNest.Shared.Helpers;
 
 namespace GameNest.CatalogService.BLL.Services
@@ -147,11 +145,6 @@ namespace GameNest.CatalogService.BLL.Services
                  + $":minPrice:{parameters.MinPrice?.ToString() ?? ""}"
                  + $":maxPrice:{parameters.MaxPrice?.ToString() ?? ""}"
                  + $":publisher:{parameters.PublisherId?.ToString() ?? ""}";
-        }
-
-        private async Task InvalidateGamesListCacheAsync()
-        {
-            await _cacheService.RemoveByPatternAsync("games:page:*");
         }
     }
 }
