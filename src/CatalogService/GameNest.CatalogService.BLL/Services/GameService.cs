@@ -92,11 +92,11 @@ namespace GameNest.CatalogService.BLL.Services
 
             var createdDto = _mapper.Map<GameDto>(game);
 
+            await _cacheInvalidationService.InvalidateAllGamesAsync();
+
             await _cacheService.SetAsync($"game:{game.Id}", createdDto,
                 memoryExpiration: TimeSpan.FromMinutes(2),
                 redisExpiration: TimeSpan.FromMinutes(30));
-
-            await _cacheInvalidationService.InvalidateAllGamesAsync();
 
             return createdDto;
         }
@@ -116,7 +116,12 @@ namespace GameNest.CatalogService.BLL.Services
 
             await _cacheInvalidationService.InvalidateGameAsync(id);
 
-            return _mapper.Map<GameDto>(game);
+            var updatedDto = _mapper.Map<GameDto>(game);
+            await _cacheService.SetAsync($"game:{id}", updatedDto,
+                memoryExpiration: TimeSpan.FromMinutes(2),
+                redisExpiration: TimeSpan.FromMinutes(30));
+
+            return updatedDto;
         }
 
         public async Task DeleteGameAsync(Guid id, CancellationToken cancellationToken = default)
