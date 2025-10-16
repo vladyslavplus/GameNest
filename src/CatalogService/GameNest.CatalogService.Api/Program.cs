@@ -1,5 +1,7 @@
 using GameNest.CatalogService.Api.Middlewares;
 using GameNest.CatalogService.BLL.Cache;
+using GameNest.CatalogService.BLL.Cache.Services;
+using GameNest.CatalogService.BLL.Consumers.GameGenres;
 using GameNest.CatalogService.BLL.Consumers.Genres;
 using GameNest.CatalogService.BLL.Extensions;
 using GameNest.CatalogService.BLL.MappingProfiles;
@@ -21,7 +23,6 @@ using GameNest.ServiceDefaults.Memory;
 using GameNest.ServiceDefaults.Redis;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,9 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<GenreUpdatedEventConsumer>();
     x.AddConsumer<GenreDeletedEventConsumer>();
+
+    x.AddConsumer<GameGenreCreatedEventConsumer>();
+    x.AddConsumer<GameGenreDeletedEventConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
@@ -99,6 +103,7 @@ builder.Services.AddScoped<IGamePlatformService, GamePlatformService>();
 builder.Services.AddScoped<IGameGenreService, GameGenreService>();
 builder.Services.AddScoped<IGameDeveloperRoleService, GameDeveloperRoleService>();
 
+builder.Services.AddScoped<IGameCacheInvalidationService, GameCacheInvalidationService>();
 builder.Services.AddScoped<ICachePreloader, GameCachePreloader>();
 builder.Services.AddCacheBackgroundJobs();
 

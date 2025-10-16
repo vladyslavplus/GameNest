@@ -9,7 +9,6 @@ namespace GameNest.CatalogService.BLL.Services.Interfaces
         Task<PagedList<GameGenreDto>> GetGameGenresPagedAsync(GameGenreParameters parameters, CancellationToken cancellationToken = default);
         Task<GameGenreDto?> GetGameGenreByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<GameGenreDto> CreateGameGenreAsync(GameGenreCreateDto createDto, CancellationToken cancellationToken = default);
-        Task<GameGenreDto> UpdateGameGenreAsync(Guid id, GameGenreUpdateDto updateDto, CancellationToken cancellationToken = default);
         Task DeleteGameGenreAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

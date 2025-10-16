@@ -66,25 +66,6 @@ namespace GameNest.CatalogService.Api.Controllers
         }
 
         /// <summary>
-        /// Update an existing game genre (relation between Game and Genre).
-        /// </summary>
-        /// <param name="id">Game genre Id</param>
-        /// <param name="updateDto">GameGenre update data</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <response code="200">GameGenre updated successfully</response>
-        /// <response code="400">Validation error or ID mismatch</response>
-        /// <response code="404">GameGenre not found</response>
-        [HttpPut("{id:guid}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GameGenreDto>> UpdateGameGenre(Guid id, [FromBody] GameGenreUpdateDto updateDto, CancellationToken cancellationToken)
-        {
-            var updatedGameGenre = await _gameGenreService.UpdateGameGenreAsync(id, updateDto, cancellationToken);
-            return Ok(updatedGameGenre);
-        }
-
-        /// <summary>
         /// Delete a game genre by Id.
         /// </summary>
         /// <param name="id">Game genre Id</param>

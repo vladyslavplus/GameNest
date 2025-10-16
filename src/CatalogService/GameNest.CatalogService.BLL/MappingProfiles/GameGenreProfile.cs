@@ -9,7 +9,6 @@ namespace GameNest.CatalogService.BLL.MappingProfiles
         public GameGenreProfile()
         {
             CreateMap<GameGenreCreateDto, GameGenre>();
-            CreateMap<GameGenreUpdateDto, GameGenre>();
 
             CreateMap<GameGenre, GameGenreDto>()
                 .ForMember(dest => dest.GameTitle, opt => opt.MapFrom(src => src.Game.Title))

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GameNest.CatalogService.BLL.Cache.Services;
 using GameNest.CatalogService.BLL.DTOs.Games;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.DAL.Helpers;
@@ -17,12 +18,18 @@ namespace GameNest.CatalogService.BLL.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHybridCacheService _cacheService;
+        private readonly IGameCacheInvalidationService _cacheInvalidationService;
 
-        public GameService(IUnitOfWork unitOfWork, IMapper mapper, IHybridCacheService cacheService)
+        public GameService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IHybridCacheService cacheService,
+            IGameCacheInvalidationService cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cacheService = cacheService;
+            _cacheInvalidationService = cacheInvalidationService;
         }
 
         public async Task<PagedList<GameDto>> GetGamesPagedAsync(GameParameters parameters, CancellationToken cancellationToken = default)
@@ -91,7 +98,7 @@ namespace GameNest.CatalogService.BLL.Services
                 memoryExpiration: TimeSpan.FromMinutes(2),
                 redisExpiration: TimeSpan.FromMinutes(30));
 
-            await InvalidateGamesListCacheAsync();
+            await _cacheInvalidationService.InvalidateAllGamesAsync();
 
             return createdDto;
         }
@@ -109,8 +116,7 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Games.UpdateAsync(game);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheService.RemoveAsync($"game:{id}");
-            await InvalidateGamesListCacheAsync();
+            await _cacheInvalidationService.InvalidateGameAsync(id);
 
             return _mapper.Map<GameDto>(game);
         }
@@ -121,8 +127,7 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Games.DeleteAsync(id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheService.RemoveAsync($"game:{id}");
-            await InvalidateGamesListCacheAsync();
+            await _cacheInvalidationService.InvalidateGameAsync(id);
         }
 
         private async Task<Game> GetGameOrThrowAsync(Guid id, CancellationToken cancellationToken)
