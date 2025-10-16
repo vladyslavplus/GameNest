@@ -5,6 +5,9 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.Shared.Events.Platforms;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace GameNest.CatalogService.BLL.Services
 {
@@ -12,11 +15,19 @@ namespace GameNest.CatalogService.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly ILogger<PlatformService> _logger;
 
-        public PlatformService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PlatformService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IPublishEndpoint publishEndpoint,
+            ILogger<PlatformService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _publishEndpoint = publishEndpoint;
+            _logger = logger;
         }
 
         public async Task<PagedList<PlatformDto>> GetPlatformsPagedAsync(PlatformParameters parameters, CancellationToken cancellationToken = default)
@@ -50,19 +61,44 @@ namespace GameNest.CatalogService.BLL.Services
         {
             var platform = await GetPlatformOrThrowAsync(id, cancellationToken);
 
+            var oldName = platform.Name;
             platform.Name = dto.Name ?? platform.Name;
 
             await _unitOfWork.Platforms.UpdateAsync(platform);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+            var @event = new PlatformUpdatedEvent
+            {
+                PlatformId = platform.Id,
+                NewName = platform.Name,
+                OldName = oldName
+            };
+
+            await _publishEndpoint.Publish(@event, cancellationToken);
+            _logger.LogInformation("Published PlatformUpdatedEvent for Platform {PlatformId}: {OldName} -> {NewName}",
+                platform.Id, oldName, platform.Name);
+
             return _mapper.Map<PlatformDto>(platform);
         }
 
+
         public async Task DeletePlatformAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            await GetPlatformOrThrowAsync(id, cancellationToken);
+            var platform = await GetPlatformOrThrowAsync(id, cancellationToken);
+            var platformName = platform.Name;
+
             await _unitOfWork.Platforms.DeleteAsync(id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var @event = new PlatformDeletedEvent
+            {
+                PlatformId = id,
+                PlatformName = platformName
+            };
+
+            await _publishEndpoint.Publish(@event, cancellationToken);
+            _logger.LogInformation("Published PlatformDeletedEvent for Platform {PlatformId}: {PlatformName}",
+                id, platformName);
         }
 
         private async Task<Platform> GetPlatformOrThrowAsync(Guid id, CancellationToken cancellationToken)

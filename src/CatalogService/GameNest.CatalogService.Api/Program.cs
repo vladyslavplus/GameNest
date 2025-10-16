@@ -3,6 +3,7 @@ using GameNest.CatalogService.BLL.Cache;
 using GameNest.CatalogService.BLL.Cache.Services;
 using GameNest.CatalogService.BLL.Consumers.GameGenres;
 using GameNest.CatalogService.BLL.Consumers.Genres;
+using GameNest.CatalogService.BLL.Consumers.Platforms;
 using GameNest.CatalogService.BLL.Extensions;
 using GameNest.CatalogService.BLL.MappingProfiles;
 using GameNest.CatalogService.BLL.Services;
@@ -54,6 +55,9 @@ builder.Services.AddMassTransit(x =>
 
     x.AddConsumer<GameGenreCreatedEventConsumer>();
     x.AddConsumer<GameGenreDeletedEventConsumer>();
+
+    x.AddConsumer<PlatformDeletedEventConsumer>();
+    x.AddConsumer<PlatformUpdatedEventConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
