@@ -9,7 +9,6 @@ namespace GameNest.CatalogService.BLL.Services.Interfaces
         Task<PagedList<GamePlatformDto>> GetGamePlatformsPagedAsync(GamePlatformParameters parameters, CancellationToken cancellationToken = default);
         Task<GamePlatformDto?> GetGamePlatformByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<GamePlatformDto> CreateGamePlatformAsync(GamePlatformCreateDto createDto, CancellationToken cancellationToken = default);
-        Task<GamePlatformDto> UpdateGamePlatformAsync(Guid id, GamePlatformUpdateDto updateDto, CancellationToken cancellationToken = default);
         Task DeleteGamePlatformAsync( Guid id, CancellationToken cancellationToken = default);
     }
 }

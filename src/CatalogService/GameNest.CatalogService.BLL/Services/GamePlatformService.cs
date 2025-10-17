@@ -5,6 +5,9 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.Shared.Events.GamePlatforms;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace GameNest.CatalogService.BLL.Services
 {
@@ -12,11 +15,19 @@ namespace GameNest.CatalogService.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly ILogger<GamePlatformService> _logger;
 
-        public GamePlatformService(IUnitOfWork unitOfWork, IMapper mapper)
+        public GamePlatformService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IPublishEndpoint publishEndpoint,
+            ILogger<GamePlatformService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _publishEndpoint = publishEndpoint;
+            _logger = logger;
         }
 
         public async Task<PagedList<GamePlatformDto>> GetGamePlatformsPagedAsync(GamePlatformParameters parameters, CancellationToken cancellationToken = default)
@@ -45,27 +56,42 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.GamePlatforms.AddAsync(gamePlatform, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<GamePlatformDto>(gamePlatform);
-        }
+            gamePlatform = await _unitOfWork.GamePlatforms.GetByIdWithReferencesAsync(gamePlatform.Id, cancellationToken)
+                           ?? throw new InvalidOperationException("Failed to load GamePlatform after creation.");
 
-        public async Task<GamePlatformDto> UpdateGamePlatformAsync(Guid id, GamePlatformUpdateDto updateDto, CancellationToken cancellationToken = default)
-        {
-            var gamePlatform = await GetGamePlatformOrThrowAsync(id, cancellationToken);
+            var @event = new GamePlatformCreatedEvent
+            {
+                GamePlatformId = gamePlatform.Id,
+                GameId = gamePlatform.GameId,
+                PlatformId = gamePlatform.PlatformId
+            };
 
-            gamePlatform.GameId = updateDto.GameId ?? gamePlatform.GameId;
-            gamePlatform.PlatformId = updateDto.PlatformId ?? gamePlatform.PlatformId;
-
-            await _unitOfWork.GamePlatforms.UpdateAsync(gamePlatform);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _publishEndpoint.Publish(@event, cancellationToken);
+            _logger.LogInformation("Published GamePlatformCreatedEvent for GameId={GameId}, PlatformId={PlatformId}",
+                gamePlatform.GameId, gamePlatform.PlatformId);
 
             return _mapper.Map<GamePlatformDto>(gamePlatform);
         }
 
         public async Task DeleteGamePlatformAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            await GetGamePlatformOrThrowAsync(id, cancellationToken);
+            var gamePlatform = await GetGamePlatformOrThrowAsync(id, cancellationToken);
+            var gameId = gamePlatform.GameId;
+            var platformId = gamePlatform.PlatformId;
+
             await _unitOfWork.GamePlatforms.DeleteAsync(id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var @event = new GamePlatformDeletedEvent
+            {
+                GamePlatformId = id,
+                GameId = gameId,
+                PlatformId = platformId
+            };
+
+            await _publishEndpoint.Publish(@event, cancellationToken);
+            _logger.LogInformation("Published GamePlatformDeletedEvent for GameId={GameId}, PlatformId={PlatformId}",
+                gameId, platformId);
         }
 
         private async Task<GamePlatform> GetGamePlatformOrThrowAsync(Guid id, CancellationToken cancellationToken)

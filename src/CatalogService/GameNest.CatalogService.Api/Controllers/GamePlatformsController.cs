@@ -64,25 +64,6 @@ namespace GameNest.CatalogService.Api.Controllers
         }
 
         /// <summary>
-        /// Update an existing game-platform relation.
-        /// </summary>
-        /// <param name="id">GamePlatform Id</param>
-        /// <param name="updateDto">GamePlatform update data</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <response code="200">GamePlatform updated successfully</response>
-        /// <response code="400">Validation error or ID mismatch</response>
-        /// <response code="404">GamePlatform not found</response>
-        [HttpPut("{id:guid}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GamePlatformDto>> UpdateGamePlatform(Guid id, [FromBody] GamePlatformUpdateDto updateDto, CancellationToken cancellationToken)
-        {
-            var updatedGamePlatform = await _gamePlatformService.UpdateGamePlatformAsync(id, updateDto, cancellationToken);
-            return Ok(updatedGamePlatform);
-        }
-
-        /// <summary>
         /// Delete a game-platform relation by Id.
         /// </summary>
         /// <param name="id">GamePlatform Id</param>
