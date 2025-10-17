@@ -5,6 +5,9 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.Shared.Events.Publishers;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 
 namespace GameNest.CatalogService.BLL.Services
 {
@@ -12,11 +15,19 @@ namespace GameNest.CatalogService.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IPublishEndpoint _publishEndpoint;
+        private readonly ILogger<PublisherService> _logger;
 
-        public PublisherService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PublisherService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IPublishEndpoint publishEndpoint,
+            ILogger<PublisherService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _publishEndpoint = publishEndpoint;
+            _logger = logger;
         }
 
         public async Task<PagedList<PublisherDto>> GetPublishersPagedAsync(PublisherParameters parameters, CancellationToken cancellationToken = default)
@@ -50,6 +61,11 @@ namespace GameNest.CatalogService.BLL.Services
         {
             var publisher = await GetPublisherOrThrowAsync(id, cancellationToken);
 
+            var oldName = publisher.Name;
+            var oldType = publisher.Type;
+            var oldCountry = publisher.Country;
+            var oldPhone = publisher.Phone;
+
             publisher.Name = updateDto.Name ?? publisher.Name;
             publisher.Type = updateDto.Type ?? publisher.Type;
             publisher.Country = updateDto.Country ?? publisher.Country;
@@ -58,15 +74,43 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Publishers.UpdateAsync(publisher);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+            var @event = new PublisherUpdatedEvent
+            {
+                PublisherId = publisher.Id,
+                OldName = oldName,
+                OldType = oldType,
+                OldCountry = oldCountry,
+                OldPhone = oldPhone,
+                NewName = publisher.Name,
+                NewType = publisher.Type,
+                NewCountry = publisher.Country,
+                NewPhone = publisher.Phone
+            };
+
+            await _publishEndpoint.Publish(@event, cancellationToken);
+            _logger.LogInformation("Published PublisherUpdatedEvent for Publisher {PublisherId}: {OldName} -> {NewName}",
+                publisher.Id, oldName, publisher.Name);
+
             return _mapper.Map<PublisherDto>(publisher);
         }
 
         public async Task DeletePublisherAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var publisher = await GetPublisherOrThrowAsync(id, cancellationToken);
+            var publisherName = publisher.Name;
 
             await _unitOfWork.Publishers.DeleteAsync(publisher.Id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var @event = new PublisherDeletedEvent
+            {
+                PublisherId = id,
+                PublisherName = publisherName
+            };
+
+            await _publishEndpoint.Publish(@event, cancellationToken);
+            _logger.LogInformation("Published PublisherDeletedEvent for Publisher {PublisherId}: {PublisherName}",
+                id, publisherName);
         }
 
         private async Task<Publisher> GetPublisherOrThrowAsync(Guid id, CancellationToken cancellationToken)
