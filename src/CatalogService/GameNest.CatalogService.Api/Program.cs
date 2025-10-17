@@ -7,6 +7,7 @@ using GameNest.CatalogService.BLL.Consumers.GamePlatforms;
 using GameNest.CatalogService.BLL.Consumers.Genres;
 using GameNest.CatalogService.BLL.Consumers.Platforms;
 using GameNest.CatalogService.BLL.Consumers.Publishers;
+using GameNest.CatalogService.BLL.Consumers.Roles;
 using GameNest.CatalogService.BLL.Extensions;
 using GameNest.CatalogService.BLL.MappingProfiles;
 using GameNest.CatalogService.BLL.Services;
@@ -70,6 +71,9 @@ builder.Services.AddMassTransit(x =>
 
     x.AddConsumer<PublisherDeletedEventConsumer>();
     x.AddConsumer<PublisherUpdatedEventConsumer>();
+
+    x.AddConsumer<RoleDeletedEventConsumer>();
+    x.AddConsumer<RoleUpdatedEventConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {
