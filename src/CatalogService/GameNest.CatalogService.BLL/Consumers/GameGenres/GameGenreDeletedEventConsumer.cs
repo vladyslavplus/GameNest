@@ -1,4 +1,5 @@
-﻿using GameNest.CatalogService.BLL.Cache.Services;
+﻿using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
+using GameNest.CatalogService.Domain.Entities;
 using GameNest.Shared.Events.GameGenres;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -7,11 +8,11 @@ namespace GameNest.CatalogService.BLL.Consumers.GameGenres
 {
     public class GameGenreDeletedEventConsumer : IConsumer<GameGenreDeletedEvent>
     {
-        private readonly IGameCacheInvalidationService _cacheInvalidationService;
+        private readonly IEntityCacheInvalidationService<Game> _cacheInvalidationService;
         private readonly ILogger<GameGenreDeletedEventConsumer> _logger;
 
         public GameGenreDeletedEventConsumer(
-            IGameCacheInvalidationService cacheInvalidationService,
+            IEntityCacheInvalidationService<Game> cacheInvalidationService,
             ILogger<GameGenreDeletedEventConsumer> logger)
         {
             _cacheInvalidationService = cacheInvalidationService;
@@ -27,7 +28,7 @@ namespace GameNest.CatalogService.BLL.Consumers.GameGenres
 
             try
             {
-                await _cacheInvalidationService.InvalidateGameAsync(message.GameId);
+                await _cacheInvalidationService.InvalidateByIdAsync(message.GameId);
 
                 _logger.LogInformation(
                     "Successfully invalidated cache after GameGenre deletion: GameId={GameId}",

@@ -1,4 +1,5 @@
-﻿using GameNest.CatalogService.BLL.Cache.Services;
+﻿using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
+using GameNest.CatalogService.Domain.Entities;
 using GameNest.Shared.Events.GamePlatforms;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -7,11 +8,11 @@ namespace GameNest.CatalogService.BLL.Consumers.GamePlatforms
 {
     public class GamePlatformCreatedEventConsumer : IConsumer<GamePlatformCreatedEvent>
     {
-        private readonly IGameCacheInvalidationService _cacheInvalidationService;
+        private readonly IEntityCacheInvalidationService<Game> _cacheInvalidationService;
         private readonly ILogger<GamePlatformCreatedEventConsumer> _logger;
 
         public GamePlatformCreatedEventConsumer(
-            IGameCacheInvalidationService cacheInvalidationService,
+            IEntityCacheInvalidationService<Game> cacheInvalidationService,
             ILogger<GamePlatformCreatedEventConsumer> logger)
         {
             _cacheInvalidationService = cacheInvalidationService;
@@ -27,7 +28,7 @@ namespace GameNest.CatalogService.BLL.Consumers.GamePlatforms
 
             try
             {
-                await _cacheInvalidationService.InvalidateGameAsync(message.GameId);
+                await _cacheInvalidationService.InvalidateByIdAsync(message.GameId);
 
                 _logger.LogInformation(
                     "Successfully invalidated cache after GamePlatform creation: GameId={GameId}",

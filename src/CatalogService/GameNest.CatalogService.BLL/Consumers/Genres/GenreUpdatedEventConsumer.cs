@@ -1,4 +1,5 @@
-﻿using GameNest.CatalogService.BLL.Cache.Services;
+﻿using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
+using GameNest.CatalogService.Domain.Entities;
 using GameNest.Shared.Events.Genres;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -7,11 +8,11 @@ namespace GameNest.CatalogService.BLL.Consumers.Genres
 {
     public class GenreUpdatedEventConsumer : IConsumer<GenreUpdatedEvent>
     {
-        private readonly IGameCacheInvalidationService _cacheInvalidationService;
+        private readonly IEntityCacheInvalidationService<Game> _cacheInvalidationService;
         private readonly ILogger<GenreUpdatedEventConsumer> _logger;
 
         public GenreUpdatedEventConsumer(
-            IGameCacheInvalidationService cacheInvalidationService,
+            IEntityCacheInvalidationService<Game> cacheInvalidationService,
             ILogger<GenreUpdatedEventConsumer> logger)
         {
             _cacheInvalidationService = cacheInvalidationService;
@@ -27,7 +28,7 @@ namespace GameNest.CatalogService.BLL.Consumers.Genres
 
             try
             {
-                await _cacheInvalidationService.InvalidateAllGamesAsync();
+                await _cacheInvalidationService.InvalidateAllAsync();
 
                 _logger.LogInformation(
                     "Successfully invalidated game cache after genre update: GenreId={GenreId}",

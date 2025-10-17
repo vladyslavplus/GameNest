@@ -1,9 +1,11 @@
-﻿using GameNest.ServiceDefaults.Hybrid;
+﻿using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
+using GameNest.CatalogService.Domain.Entities;
+using GameNest.ServiceDefaults.Hybrid;
 using Microsoft.Extensions.Logging;
 
 namespace GameNest.CatalogService.BLL.Cache.Services
 {
-    public class GameCacheInvalidationService : IGameCacheInvalidationService
+    public class GameCacheInvalidationService : IEntityCacheInvalidationService<Game>
     {
         private readonly IHybridCacheService _cacheService;
         private readonly ILogger<GameCacheInvalidationService> _logger;
@@ -20,7 +22,7 @@ namespace GameNest.CatalogService.BLL.Cache.Services
             _logger = logger;
         }
 
-        public async Task InvalidateGameAsync(Guid gameId)
+        public async Task InvalidateByIdAsync(Guid gameId)
         {
             try
             {
@@ -37,7 +39,7 @@ namespace GameNest.CatalogService.BLL.Cache.Services
             }
         }
 
-        public async Task InvalidateAllGamesAsync()
+        public async Task InvalidateAllAsync()
         {
             try
             {

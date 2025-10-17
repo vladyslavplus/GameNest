@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using GameNest.CatalogService.BLL.Cache.Services;
+using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
 using GameNest.CatalogService.BLL.DTOs.Games;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.DAL.Helpers;
@@ -16,13 +16,14 @@ namespace GameNest.CatalogService.BLL.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IHybridCacheService _cacheService;
-        private readonly IGameCacheInvalidationService _cacheInvalidationService;
+        private readonly IEntityCacheInvalidationService<Game> _cacheInvalidationService;
+        private const string CachePrefix = "game";
 
         public GameService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             IHybridCacheService cacheService,
-            IGameCacheInvalidationService cacheInvalidationService)
+            IEntityCacheInvalidationService<Game> cacheInvalidationService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -71,7 +72,7 @@ namespace GameNest.CatalogService.BLL.Services
 
         public async Task<GameDto?> GetGameByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            string cacheKey = $"game:{id}";
+            string cacheKey = $"{CachePrefix}:{id}";
 
             return await _cacheService.GetOrSetAsync(
                 cacheKey,
@@ -92,9 +93,10 @@ namespace GameNest.CatalogService.BLL.Services
 
             var createdDto = _mapper.Map<GameDto>(game);
 
-            await _cacheInvalidationService.InvalidateAllGamesAsync();
+            await _cacheInvalidationService.InvalidateAllAsync();
 
-            await _cacheService.SetAsync($"game:{game.Id}", createdDto,
+            string cacheKey = $"{CachePrefix}:{game.Id}";
+            await _cacheService.SetAsync(cacheKey, createdDto,
                 memoryExpiration: TimeSpan.FromMinutes(2),
                 redisExpiration: TimeSpan.FromMinutes(30));
 
@@ -114,10 +116,11 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Games.UpdateAsync(game);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheInvalidationService.InvalidateGameAsync(id);
+            await _cacheInvalidationService.InvalidateByIdAsync(id);
 
             var updatedDto = _mapper.Map<GameDto>(game);
-            await _cacheService.SetAsync($"game:{id}", updatedDto,
+            string cacheKey = $"{CachePrefix}:{id}";
+            await _cacheService.SetAsync(cacheKey, updatedDto,
                 memoryExpiration: TimeSpan.FromMinutes(2),
                 redisExpiration: TimeSpan.FromMinutes(30));
 
@@ -130,7 +133,7 @@ namespace GameNest.CatalogService.BLL.Services
             await _unitOfWork.Games.DeleteAsync(id, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheInvalidationService.InvalidateGameAsync(id);
+            await _cacheInvalidationService.InvalidateByIdAsync(id);
         }
 
         private async Task<Game> GetGameOrThrowAsync(Guid id, CancellationToken cancellationToken)

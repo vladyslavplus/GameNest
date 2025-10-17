@@ -1,4 +1,5 @@
-﻿using GameNest.CatalogService.BLL.Cache.Services;
+﻿using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
+using GameNest.CatalogService.Domain.Entities;
 using GameNest.Shared.Events.GameDeveloperRoles;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -7,11 +8,11 @@ namespace GameNest.CatalogService.BLL.Consumers.GameDeveloperRoles
 {
     public class GameDeveloperRoleCreatedEventConsumer : IConsumer<GameDeveloperRoleCreatedEvent>
     {
-        private readonly IGameCacheInvalidationService _cacheInvalidationService;
+        private readonly IEntityCacheInvalidationService<GameDeveloperRole> _cacheInvalidationService;
         private readonly ILogger<GameDeveloperRoleCreatedEventConsumer> _logger;
 
         public GameDeveloperRoleCreatedEventConsumer(
-            IGameCacheInvalidationService cacheInvalidationService,
+            IEntityCacheInvalidationService<GameDeveloperRole> cacheInvalidationService,
             ILogger<GameDeveloperRoleCreatedEventConsumer> logger)
         {
             _cacheInvalidationService = cacheInvalidationService;
@@ -27,7 +28,7 @@ namespace GameNest.CatalogService.BLL.Consumers.GameDeveloperRoles
 
             try
             {
-                await _cacheInvalidationService.InvalidateGameAsync(message.GameId);
+                await _cacheInvalidationService.InvalidateByIdAsync(message.GameId);
 
                 _logger.LogInformation(
                     "Successfully invalidated cache after GameDeveloperRole creation: GameId={GameId}",

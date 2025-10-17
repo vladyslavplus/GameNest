@@ -1,6 +1,7 @@
 using GameNest.CatalogService.Api.Middlewares;
 using GameNest.CatalogService.BLL.Cache;
 using GameNest.CatalogService.BLL.Cache.Services;
+using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
 using GameNest.CatalogService.BLL.Consumers.Developers;
 using GameNest.CatalogService.BLL.Consumers.GameDeveloperRoles;
 using GameNest.CatalogService.BLL.Consumers.GameGenres;
@@ -20,6 +21,7 @@ using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.Repositories;
 using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
+using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Grpc.Services;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.ServiceDefaults.Health;
@@ -127,7 +129,8 @@ builder.Services.AddScoped<IGamePlatformService, GamePlatformService>();
 builder.Services.AddScoped<IGameGenreService, GameGenreService>();
 builder.Services.AddScoped<IGameDeveloperRoleService, GameDeveloperRoleService>();
 
-builder.Services.AddScoped<IGameCacheInvalidationService, GameCacheInvalidationService>();
+builder.Services.AddScoped<IEntityCacheInvalidationService<Game>, GameCacheInvalidationService>();
+builder.Services.AddScoped<IEntityCacheInvalidationService<GameDeveloperRole>, GameDeveloperRoleCacheInvalidationService>();
 builder.Services.AddScoped<ICachePreloader, GameCachePreloader>();
 builder.Services.AddCacheBackgroundJobs();
 

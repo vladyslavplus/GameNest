@@ -1,4 +1,5 @@
-﻿using GameNest.CatalogService.BLL.Cache.Services;
+﻿using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
+using GameNest.CatalogService.Domain.Entities;
 using GameNest.Shared.Events.Publishers;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -7,11 +8,11 @@ namespace GameNest.CatalogService.BLL.Consumers.Publishers
 {
     public class PublisherUpdatedEventConsumer : IConsumer<PublisherUpdatedEvent>
     {
-        private readonly IGameCacheInvalidationService _cacheInvalidationService;
+        private readonly IEntityCacheInvalidationService<Game> _cacheInvalidationService;
         private readonly ILogger<PublisherUpdatedEventConsumer> _logger;
 
         public PublisherUpdatedEventConsumer(
-            IGameCacheInvalidationService cacheInvalidationService,
+            IEntityCacheInvalidationService<Game> cacheInvalidationService,
             ILogger<PublisherUpdatedEventConsumer> logger)
         {
             _cacheInvalidationService = cacheInvalidationService;
@@ -27,7 +28,7 @@ namespace GameNest.CatalogService.BLL.Consumers.Publishers
 
             try
             {
-                await _cacheInvalidationService.InvalidateAllGamesAsync();
+                await _cacheInvalidationService.InvalidateAllAsync();
 
                 _logger.LogInformation(
                     "Successfully invalidated game cache after publisher update: PublisherId={PublisherId}",
