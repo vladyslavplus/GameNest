@@ -9,7 +9,6 @@ namespace GameNest.CatalogService.BLL.MappingProfiles
         public GamePlatformProfile()
         {
             CreateMap<GamePlatformCreateDto, GamePlatform>();
-            CreateMap<GamePlatformUpdateDto, GamePlatform>();
 
             CreateMap<GamePlatform, GamePlatformDto>()
                 .ForMember(dest => dest.GameTitle, opt => opt.MapFrom(src => src.Game.Title))

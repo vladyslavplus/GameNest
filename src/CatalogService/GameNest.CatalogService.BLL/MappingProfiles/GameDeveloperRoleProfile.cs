@@ -9,7 +9,6 @@ namespace GameNest.CatalogService.BLL.MappingProfiles
         public GameDeveloperRoleProfile()
         {
             CreateMap<GameDeveloperRoleCreateDto, GameDeveloperRole>();
-            CreateMap<GameDeveloperRoleUpdateDto, GameDeveloperRole>();
 
             CreateMap<GameDeveloperRole, GameDeveloperRoleDto>()
                 .ForMember(dest => dest.GameTitle, opt => opt.MapFrom(src => src.Game.Title))

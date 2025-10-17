@@ -64,25 +64,6 @@ namespace GameNest.CatalogService.Api.Controllers
         }
 
         /// <summary>
-        /// Update an existing game developer role.
-        /// </summary>
-        /// <param name="id">Role Id</param>
-        /// <param name="updateDto">Role update data</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <response code="200">Role updated successfully</response>
-        /// <response code="400">Validation error or ID mismatch</response>
-        /// <response code="404">Role not found</response>
-        [HttpPut("{id:guid}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<GameDeveloperRoleDto>> UpdateRole(Guid id, [FromBody] GameDeveloperRoleUpdateDto updateDto, CancellationToken cancellationToken)
-        {
-            var updatedRole = await _gameDeveloperRoleService.UpdateRoleAsync(id, updateDto, cancellationToken);
-            return Ok(updatedRole);
-        }
-
-        /// <summary>
         /// Delete a game developer role by Id.
         /// </summary>
         /// <param name="id">Role Id</param>

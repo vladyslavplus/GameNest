@@ -9,7 +9,6 @@ namespace GameNest.CatalogService.BLL.Services.Interfaces
         Task<PagedList<GameDeveloperRoleDto>> GetRolesPagedAsync(GameDeveloperRoleParameters parameters, CancellationToken cancellationToken = default);
         Task<GameDeveloperRoleDto?> GetRoleByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<GameDeveloperRoleDto> CreateRoleAsync(GameDeveloperRoleCreateDto createDto, CancellationToken cancellationToken = default);
-        Task<GameDeveloperRoleDto> UpdateRoleAsync(Guid id, GameDeveloperRoleUpdateDto updateDto, CancellationToken cancellationToken = default);
         Task DeleteRoleAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

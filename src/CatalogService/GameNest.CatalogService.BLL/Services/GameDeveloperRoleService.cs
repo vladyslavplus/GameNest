@@ -51,24 +51,6 @@ namespace GameNest.CatalogService.BLL.Services
             return _mapper.Map<GameDeveloperRoleDto>(gdr);
         }
 
-        public async Task<GameDeveloperRoleDto> UpdateRoleAsync(Guid id, GameDeveloperRoleUpdateDto updateDto, CancellationToken cancellationToken = default)
-        {
-            var gdr = await GetRoleOrThrowAsync(id, cancellationToken);
-
-            gdr.GameId = updateDto.GameId ?? gdr.GameId;
-            gdr.DeveloperId = updateDto.DeveloperId ?? gdr.DeveloperId;
-            gdr.RoleId = updateDto.RoleId ?? gdr.RoleId;
-            gdr.Seniority = updateDto.Seniority ?? gdr.Seniority;
-
-            await _unitOfWork.GameDeveloperRoles.UpdateAsync(gdr);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            gdr = await _unitOfWork.GameDeveloperRoles.GetByIdWithReferencesAsync(id, cancellationToken)
-                  ?? throw new InvalidOperationException("Failed to load GameDeveloperRole after update.");
-
-            return _mapper.Map<GameDeveloperRoleDto>(gdr);
-        }
-
         public async Task DeleteRoleAsync(Guid id, CancellationToken cancellationToken = default)
         {
             await GetRoleOrThrowAsync(id, cancellationToken);
