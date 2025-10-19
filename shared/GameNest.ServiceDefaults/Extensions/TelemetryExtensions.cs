@@ -31,11 +31,26 @@ namespace GameNest.ServiceDefaults.Extensions
                             options.EnrichWithHttpRequest = (activity, request) =>
                             {
                                 if (request.HttpContext.Items.TryGetValue("X-Correlation-Id", out var correlationId))
-                                {
                                     activity.SetTag("correlation.id", correlationId);
-                                }
                             };
                         })
+                        .AddGrpcClientInstrumentation(options =>
+                        {
+                            options.EnrichWithHttpRequestMessage = (activity, req) =>
+                            {
+                                activity.SetTag("rpc.system", "grpc");
+                                activity.SetTag("rpc.service", req.RequestUri?.Segments.SkipLast(1).LastOrDefault()?.Trim('/'));
+                                activity.SetTag("rpc.method", req.RequestUri?.Segments.LastOrDefault()?.Trim('/'));
+                                activity.SetTag("net.peer.name", req.RequestUri?.Host);
+                                activity.SetTag("net.peer.port", req.RequestUri?.Port);
+                            };
+                            options.EnrichWithHttpResponseMessage = (activity, res) =>
+                            {
+                                activity.SetTag("rpc.grpc.status_code", (int)res.StatusCode);
+                            };
+                        })
+                        .AddSource("Grpc.AspNetCore.Server")
+                        .AddSource("Grpc.Net.Client")
                         .AddHttpClientInstrumentation(options =>
                         {
                             options.RecordException = true;
@@ -52,14 +67,9 @@ namespace GameNest.ServiceDefaults.Extensions
                         .AddSource("Yarp.ReverseProxy")
                         .AddOtlpExporter();
 
-                    if (env == "Development")
-                    {
-                        tracing.SetSampler(new AlwaysOnSampler());
-                    }
-                    else
-                    {
-                        tracing.SetSampler(new TraceIdRatioBasedSampler(0.2));
-                    }
+                    tracing.SetSampler(env == "Development"
+                        ? new AlwaysOnSampler()
+                        : new TraceIdRatioBasedSampler(0.2));
                 })
                 .WithMetrics(metrics =>
                 {
@@ -68,6 +78,7 @@ namespace GameNest.ServiceDefaults.Extensions
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
                         .AddMeter("Yarp.ReverseProxy")
+                        .AddMeter("GameNest.Cache")
                         .AddOtlpExporter();
                 });
 

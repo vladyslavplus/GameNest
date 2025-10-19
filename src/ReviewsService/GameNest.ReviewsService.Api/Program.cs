@@ -21,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
+builder.Services.AddGrpcWithObservability(builder.Environment);
 
 var aspireConn = builder.Configuration.GetConnectionString("gamenest-reviewservice-db")
                 ?? builder.Configuration.GetConnectionString("mongodb");
@@ -59,6 +60,7 @@ builder.Services.PostConfigure<MongoDbSettings>(options =>
 
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<IIndexCreationService, MongoIndexCreationService>();
+builder.Services.AddSingleton<IDataSeeder, DatabaseSeeder>();
 
 builder.Services.AddScoped<IUnitOfWork>(provider =>
 {
@@ -74,8 +76,6 @@ builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
-builder.Services.AddSingleton<IDataSeeder, DatabaseSeeder>();
-
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssemblies(typeof(AddReplyCommandHandler).Assembly);
@@ -86,13 +86,6 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddValidatorsFromAssembly(typeof(GetCommentsQueryValidator).Assembly);
-
-builder.Services.AddGrpc(options =>
-{
-    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-    options.MaxReceiveMessageSize = 16 * 1024 * 1024;
-    options.MaxSendMessageSize = 16 * 1024 * 1024;
-});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -119,8 +112,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseHttpsRedirection();
 }
@@ -131,6 +123,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapGrpcService<ReviewGrpcServiceImpl>();
+app.MapGrpcServicesWithReflection();
 
 app.MapHealthChecks("/health");
 await app.RunAsync();

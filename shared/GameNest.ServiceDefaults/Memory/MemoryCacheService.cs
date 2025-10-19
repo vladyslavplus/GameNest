@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using GameNest.ServiceDefaults.Metrics;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace GameNest.ServiceDefaults.Memory
 {
@@ -18,47 +20,42 @@ namespace GameNest.ServiceDefaults.Memory
 
         public T? Get<T>(string key)
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                _logger.LogWarning("MemoryCache key is null or empty");
-                return default;
-            }
+            var sw = Stopwatch.StartNew();
 
             if (_cache.TryGetValue(key, out T? value))
             {
+                CacheMetrics.MemoryCacheHits.Add(1);
+                CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
                 _logger.LogDebug("MemoryCache hit for key: {Key}", key);
                 return value;
             }
 
+            CacheMetrics.MemoryCacheMisses.Add(1);
+            CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
             _logger.LogDebug("MemoryCache miss for key: {Key}", key);
             return default;
         }
 
         public void Set<T>(string key, T value, TimeSpan? absoluteExpiration = null, TimeSpan? slidingExpiration = null)
         {
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                _logger.LogWarning("MemoryCache key is null or empty");
-                return;
-            }
-
-            if (value is null)
-            {
-                _logger.LogWarning("Attempting to cache null value for key: {Key}", key);
-                return;
-            }
+            var sw = Stopwatch.StartNew();
 
             var options = new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = absoluteExpiration ?? DefaultExpiration,
                 SlidingExpiration = slidingExpiration,
                 Priority = CacheItemPriority.Normal,
-                Size = 1 
-            };
+                Size = 1
+            }.RegisterPostEvictionCallback((key, value, reason, state) =>
+            {
+                CacheMetrics.CacheEvictions.Add(1);
+            });
 
             _cache.Set(key, value, options);
-            _logger.LogDebug("MemoryCache set for key: {Key} with absolute expiration: {Absolute}, sliding: {Sliding}",
-                key, absoluteExpiration ?? DefaultExpiration, slidingExpiration);
+            sw.Stop();
+
+            CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
+            CacheMetrics.UpdateMemoryCacheSize((_cache as MemoryCache)?.Count ?? 0);
         }
 
         public void Remove(string key)
@@ -66,6 +63,7 @@ namespace GameNest.ServiceDefaults.Memory
             if (string.IsNullOrWhiteSpace(key)) return;
 
             _cache.Remove(key);
+            CacheMetrics.UpdateMemoryCacheSize((_cache as MemoryCache)?.Count ?? 0);
             _logger.LogDebug("MemoryCache removed key: {Key}", key);
         }
 
@@ -73,7 +71,9 @@ namespace GameNest.ServiceDefaults.Memory
         {
             if (_cache is MemoryCache memCache)
             {
-                memCache.Compact(1.0); 
+                memCache.Compact(1.0);
+                CacheMetrics.CacheEvictions.Add(1);
+                CacheMetrics.UpdateMemoryCacheSize(0);
                 _logger.LogInformation("MemoryCache cleared");
             }
         }

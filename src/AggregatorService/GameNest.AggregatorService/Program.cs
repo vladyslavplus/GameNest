@@ -11,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
+builder.Services.AddCorrelationIdForwarding();
+builder.Services.AddGrpcWithObservability(builder.Environment);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -85,9 +87,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-if (!app.Environment.IsDevelopment())
+else
+{
     app.UseHttpsRedirection();
+}
 
 app.UseCorrelationId();
 app.MapControllers();

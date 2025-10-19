@@ -37,6 +37,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
+builder.Services.AddGrpcWithObservability(builder.Environment);
 
 var connectionString = builder.Configuration.GetConnectionString("gamenest-catalogservice-db")
                       ?? builder.Configuration.GetConnectionString("DefaultConnection");
@@ -94,13 +95,6 @@ builder.Services.AddSingleton(provider =>
     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
     var config = AutoMapperConfig.RegisterMappings(loggerFactory);
     return config.CreateMapper();
-});
-
-builder.Services.AddGrpc(options =>
-{
-    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-    options.MaxReceiveMessageSize = 16 * 1024 * 1024;
-    options.MaxSendMessageSize = 16 * 1024 * 1024;
 });
 
 builder.Services.AddFluentValidationSetup(typeof(GameCreateDtoValidator).Assembly);
@@ -172,5 +166,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapGrpcService<GameGrpcServiceImpl>();
+app.MapGrpcServicesWithReflection();
 
 await app.RunAsync();

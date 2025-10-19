@@ -1,12 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using GameNest.ServiceDefaults.Metrics;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
 using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace GameNest.ServiceDefaults.Redis
 {
@@ -52,25 +50,34 @@ namespace GameNest.ServiceDefaults.Redis
 
         public async Task<T?> GetDataAsync<T>(string key)
         {
+            var sw = Stopwatch.StartNew();
+
             if (string.IsNullOrWhiteSpace(key))
             {
                 _logger.LogWarning("Cache key is null or empty");
+                sw.Stop();
+                CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
                 return default;
             }
 
             return await _retryPolicy.ExecuteAsync(async () =>
             {
                 var data = await _db.StringGetAsync(key);
+                sw.Stop();
+                CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
+
                 if (data.IsNullOrEmpty)
                 {
+                    CacheMetrics.RedisCacheMisses.Add(1);
                     _logger.LogInformation("L2 Cache MISS for key: {Key}", key);
                     return default(T);
                 }
 
+                CacheMetrics.RedisCacheHits.Add(1);
+
                 var dataSize = data.Length();
                 var ttl = await _db.KeyTimeToLiveAsync(key);
-                _logger.LogInformation(
-                    "L2 Cache HIT for key: {Key} | Size: {DataSize} bytes | TTL: {TTL}",
+                _logger.LogInformation("L2 Cache HIT for key: {Key} | Size: {Size} bytes | TTL: {TTL}",
                     key, dataSize, ttl?.ToString() ?? "N/A");
 
                 return JsonSerializer.Deserialize<T>(data!, _jsonOptions);
@@ -79,39 +86,52 @@ namespace GameNest.ServiceDefaults.Redis
 
         public async Task SetDataAsync<T>(string key, T data, TimeSpan? expiration = null)
         {
+            var sw = Stopwatch.StartNew();
+
             if (string.IsNullOrWhiteSpace(key))
             {
                 _logger.LogWarning("Cache key is null or empty");
+                sw.Stop();
+                CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
                 return;
             }
+
             if (data is null)
             {
                 _logger.LogWarning("Attempting to cache null data for key: {Key}", key);
+                sw.Stop();
+                CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
                 return;
             }
 
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                var serializedData = JsonSerializer.Serialize(data, _jsonOptions);
-                await _db.StringSetAsync(key, serializedData, expiration ?? DefaultExpiration);
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                await _db.StringSetAsync(key, json, expiration ?? DefaultExpiration);
             });
 
+            sw.Stop();
+            CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
             _logger.LogDebug("Data cached successfully for key: {Key} with expiration: {Expiration}",
                 key, expiration ?? DefaultExpiration);
         }
 
         public async Task RemoveDataAsync(string key)
         {
+            var sw = Stopwatch.StartNew();
+
             if (string.IsNullOrWhiteSpace(key)) return;
 
             await _retryPolicy.ExecuteAsync(() => _db.KeyDeleteAsync(key));
+
+            sw.Stop();
+            CacheMetrics.CacheLatency.Record(sw.Elapsed.TotalSeconds);
             _logger.LogDebug("Cache key removed: {Key}", key);
         }
 
         public async Task AddToSetAsync(string setKey, string value)
         {
             if (string.IsNullOrWhiteSpace(setKey) || string.IsNullOrWhiteSpace(value)) return;
-
             await _retryPolicy.ExecuteAsync(() => _db.SetAddAsync(setKey, value));
         }
 
@@ -126,7 +146,6 @@ namespace GameNest.ServiceDefaults.Redis
         public async Task ClearSetAsync(string setKey)
         {
             if (string.IsNullOrWhiteSpace(setKey)) return;
-
             await _retryPolicy.ExecuteAsync(() => _db.KeyDeleteAsync(setKey));
         }
 

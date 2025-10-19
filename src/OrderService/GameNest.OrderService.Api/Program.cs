@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
+builder.Services.AddGrpcWithObservability(builder.Environment);
 
 builder.Services.AddSingleton(provider =>
 {
@@ -52,13 +53,6 @@ builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentRecordService, PaymentRecordService>();
 
-builder.Services.AddGrpc(options =>
-{
-    options.EnableDetailedErrors = builder.Environment.IsDevelopment();
-    options.MaxReceiveMessageSize = 16 * 1024 * 1024; 
-    options.MaxSendMessageSize = 16 * 1024 * 1024;
-});
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -70,8 +64,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseHttpsRedirection();
 }
@@ -82,5 +75,6 @@ app.MapControllers();
 
 app.MapGrpcService<OrderGrpcServiceImpl>();
 app.MapGrpcService<OrderItemGrpcServiceImpl>();
+app.MapGrpcServicesWithReflection();
 
 await app.RunAsync();
