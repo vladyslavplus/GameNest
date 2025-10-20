@@ -39,14 +39,14 @@ var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("c
     .WaitFor(rabbitmq)
     .WithHttpEndpoint(port: 5002, name: "catalog-http")
     .WithHttpsEndpoint(port: 7048, name: "catalog-https")
-    .WithHttpHealthCheck("/health") 
+    .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("reviewsservice-api")
     .WithReference(mongoDb)
     .WaitFor(mongoDb)
     .WithHttpEndpoint(port: 5003, name: "reviews-http")
-    .WithHttpsEndpoint(port: 7047, name: "reviews-https") 
+    .WithHttpsEndpoint(port: 7047, name: "reviews-https")
     .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 

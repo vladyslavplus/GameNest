@@ -42,7 +42,7 @@ namespace GameNest.CatalogService.BLL.Services
                     var gamesPaged = await _unitOfWork.Games.GetGamesPagedAsync(parameters, cancellationToken: cancellationToken);
                     if (gamesPaged is null || !gamesPaged.Any())
                     {
-                        return null; 
+                        return null;
                     }
                     var dtoList = gamesPaged.Select(g => _mapper.Map<GameDto>(g)).ToList();
                     return new PagedListCacheDto<GameDto>

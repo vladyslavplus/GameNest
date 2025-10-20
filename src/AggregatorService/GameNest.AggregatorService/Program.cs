@@ -35,7 +35,8 @@ builder.Services.AddGrpcClient<GameGrpcService.GameGrpcServiceClient>(options =>
     channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
     channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
 })
-.AddServiceDiscovery();
+.AddServiceDiscovery()
+.AddGrpcResilienceHandler(ResilienceProfile.Standard);
 
 builder.Services.AddGrpcClient<ReviewGrpcService.ReviewGrpcServiceClient>(options =>
 {
@@ -46,7 +47,8 @@ builder.Services.AddGrpcClient<ReviewGrpcService.ReviewGrpcServiceClient>(option
     channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
     channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
 })
-.AddServiceDiscovery();
+.AddServiceDiscovery()
+.AddGrpcResilienceHandler(ResilienceProfile.Standard);
 
 builder.Services.AddGrpcClient<OrderGrpcService.OrderGrpcServiceClient>(options =>
 {
@@ -57,7 +59,8 @@ builder.Services.AddGrpcClient<OrderGrpcService.OrderGrpcServiceClient>(options 
     channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
     channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
 })
-.AddServiceDiscovery();
+.AddServiceDiscovery()
+.AddGrpcResilienceHandler(ResilienceProfile.Critical);
 
 builder.Services.AddGrpcClient<OrderItemGrpcService.OrderItemGrpcServiceClient>(options =>
 {
@@ -68,7 +71,8 @@ builder.Services.AddGrpcClient<OrderItemGrpcService.OrderItemGrpcServiceClient>(
     channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
     channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
 })
-.AddServiceDiscovery();
+.AddServiceDiscovery()
+.AddGrpcResilienceHandler(ResilienceProfile.Critical);
 
 builder.Services.AddScoped<CatalogGrpcClient>();
 builder.Services.AddScoped<ReviewsGrpcClient>();
