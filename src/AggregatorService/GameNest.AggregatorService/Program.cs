@@ -1,10 +1,12 @@
 using GameNest.AggregatorService.Clients;
+using GameNest.AggregatorService.HealthChecks;
 using GameNest.AggregatorService.Services;
-using GameNest.ServiceDefaults.Extensions;
 using GameNest.Grpc.Games;
-using GameNest.Grpc.Reviews;
-using GameNest.Grpc.Orders;
 using GameNest.Grpc.OrderItems;
+using GameNest.Grpc.Orders;
+using GameNest.Grpc.Reviews;
+using GameNest.ServiceDefaults.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -84,6 +86,24 @@ builder.Services.AddTransient<GameAggregatorService>();
 
 builder.Services.AddCorrelationIdForwarding();
 
+builder.Services.AddHealthChecks()
+    .AddCheck<CatalogServiceHealthCheck>(
+        "catalog-grpc",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "grpc", "downstream", "ready" })
+    .AddCheck<ReviewsServiceHealthCheck>(
+        "reviews-grpc",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "grpc", "downstream", "ready" })
+    .AddCheck<OrdersServiceHealthCheck>(
+        "orders-grpc",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "grpc", "downstream", "ready", "critical" })
+    .AddCheck<OrderItemsServiceHealthCheck>(
+        "orderitems-grpc",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "grpc", "downstream", "ready", "critical" });
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -98,5 +118,6 @@ else
 
 app.UseCorrelationId();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 await app.RunAsync();

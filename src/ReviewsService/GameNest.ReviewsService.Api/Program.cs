@@ -9,12 +9,12 @@ using GameNest.ReviewsService.Domain.Interfaces.Services;
 using GameNest.ReviewsService.Grpc.Services;
 using GameNest.ReviewsService.Infrastructure.Mongo.Configuration;
 using GameNest.ReviewsService.Infrastructure.Mongo.Context;
-using GameNest.ReviewsService.Infrastructure.Mongo.HealthChecks;
 using GameNest.ReviewsService.Infrastructure.Mongo.Indexes;
 using GameNest.ReviewsService.Infrastructure.Mongo.Seeding;
 using GameNest.ReviewsService.Infrastructure.Mongo.UOW;
 using GameNest.ReviewsService.Infrastructure.Repositories;
 using GameNest.ServiceDefaults.Extensions;
+using GameNest.ServiceDefaults.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,7 +94,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddHealthChecks()
-    .AddCheck<MongoHealthCheck>("MONGO_HEALTH");
+    .AddMongoHealthCheck(
+        builder.Configuration,
+        connectionName: "gamenest-reviewservice-db",
+        serviceName: "reviewservice",
+        databaseName: "gamenest-reviewservice-db",
+        timeoutSeconds: 5);
 
 var app = builder.Build();
 

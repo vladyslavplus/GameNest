@@ -47,7 +47,7 @@ builder.Services.AddDbContext<CatalogDbContext>(options =>
 
 builder.Services.AddMemoryCache(options =>
 {
-    options.SizeLimit = 1024; 
+    options.SizeLimit = 1024;
     options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
 });
 builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
@@ -132,8 +132,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHealthChecks()
-    .AddCheck<CacheHealthCheck>("Cache");
+builder.Services
+    .AddHealthChecks()
+    .AddCheck<CacheHealthCheck>(
+        name: "catalogservice-cache",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Degraded,
+        tags: new[] { "cache", "ready" })
+    .AddPostgresHealthCheck(
+        configuration: builder.Configuration,
+        connectionName: "gamenest-catalogservice-db",
+        serviceName: "catalogservice",
+        timeoutSeconds: 5);
 
 var app = builder.Build();
 
@@ -152,19 +161,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-if (!app.Environment.IsDevelopment())
+else
 {
     app.UseHttpsRedirection();
 }
 
-app.MapHealthChecks("/health");
-
-app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseCorrelationId();
+app.MapHealthChecks("/health");
 app.UseAuthorization();
 app.MapControllers();
-
 app.MapGrpcService<GameGrpcServiceImpl>();
 app.MapGrpcServicesWithReflection();
 

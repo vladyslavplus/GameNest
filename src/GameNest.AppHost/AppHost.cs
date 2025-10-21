@@ -28,6 +28,7 @@ var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("order
     .WaitFor(ordersDb)
     .WithHttpEndpoint(port: 5001, name: "orders-http")
     .WithHttpsEndpoint(port: 7045, name: "order-https")
+    .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("catalogservice-api")
@@ -58,6 +59,8 @@ var aggregatorService = builder.AddProject<Projects.GameNest_AggregatorService>(
     .WaitFor(catalogService)
     .WaitFor(reviewsService)
     .WithHttpEndpoint(port: 5004, name: "aggregator-http")
+    .WithHttpsEndpoint(port: 7049, name: "aggregator-https")
+    .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 builder.AddProject<Projects.GameNest_ApiGateway>("gateway")

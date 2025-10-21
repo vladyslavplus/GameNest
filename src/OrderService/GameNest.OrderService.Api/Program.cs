@@ -7,6 +7,7 @@ using GameNest.OrderService.DAL.Repositories.Interfaces;
 using GameNest.OrderService.DAL.UOW;
 using GameNest.OrderService.Grpc.Services;
 using GameNest.ServiceDefaults.Extensions;
+using GameNest.ServiceDefaults.Health;
 using Npgsql;
 using System.Data;
 using DALConnection = GameNest.OrderService.DAL.Infrastructure.IConnectionFactory;
@@ -23,7 +24,7 @@ builder.Services.AddSingleton(provider =>
 {
     var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
     var config = AutoMapperConfig.RegisterMappings(loggerFactory);
-    return config.CreateMapper(); 
+    return config.CreateMapper();
 });
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
@@ -57,6 +58,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services
+    .AddHealthChecks()
+    .AddPostgresHealthCheck(
+        configuration: builder.Configuration,
+        connectionName: "gamenest-orderservice-db",
+        serviceName: "orderservice"
+    );
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -68,11 +77,12 @@ else
 {
     app.UseHttpsRedirection();
 }
-app.UseCorrelationId();
+
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseCorrelationId();
+app.MapHealthChecks("/health");
 app.UseAuthorization();
 app.MapControllers();
-
 app.MapGrpcService<OrderGrpcServiceImpl>();
 app.MapGrpcService<OrderItemGrpcServiceImpl>();
 app.MapGrpcServicesWithReflection();
