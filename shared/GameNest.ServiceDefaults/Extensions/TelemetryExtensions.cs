@@ -79,7 +79,6 @@ namespace GameNest.ServiceDefaults.Extensions
                         .AddRuntimeInstrumentation()
                         .AddMeter("Yarp.ReverseProxy")
                         .AddMeter("GameNest.Cache")
-                        .AddMeter("GameNest.Service")
                         .AddMeter("GameNest.CatalogService.Games")
                         .AddOtlpExporter();
                 });
