@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
 using GameNest.CatalogService.BLL.Cache.Services.Interfaces;
 using GameNest.CatalogService.BLL.DTOs.Games;
+using GameNest.CatalogService.BLL.Metrics;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.DAL.Helpers;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
 using GameNest.CatalogService.Domain.Entities.Parameters;
 using GameNest.ServiceDefaults.Hybrid;
+using GameNest.ServiceDefaults.Metrics;
 using GameNest.Shared.Helpers;
+using System.Diagnostics;
 
 namespace GameNest.CatalogService.BLL.Services
 {
@@ -31,109 +34,165 @@ namespace GameNest.CatalogService.BLL.Services
             _cacheInvalidationService = cacheInvalidationService;
         }
 
-        public async Task<PagedList<GameDto>> GetGamesPagedAsync(GameParameters parameters, CancellationToken cancellationToken = default)
+        public async Task<PagedList<GameDto>> GetGamesPagedAsync(
+            GameParameters parameters,
+            CancellationToken cancellationToken = default)
         {
-            string cacheKey = GenerateGamesListCacheKey(parameters);
-
-            var cachedDto = await _cacheService.GetOrSetAsync(
-                cacheKey,
+            return await MetricRecorder.RecordOperationAsync(
+                GameMetrics.OperationLatency,
+                TagConstants.Values.List,
                 async () =>
                 {
-                    var gamesPaged = await _unitOfWork.Games.GetGamesPagedAsync(parameters, cancellationToken: cancellationToken);
-                    if (gamesPaged is null || !gamesPaged.Any())
+                    string cacheKey = GenerateGamesListCacheKey(parameters);
+
+                    var cachedDto = await _cacheService.GetOrSetAsync(
+                        cacheKey,
+                        async () =>
+                        {
+                            var gamesPaged = await _unitOfWork.Games.GetGamesPagedAsync(parameters, cancellationToken: cancellationToken);
+                            if (gamesPaged is null || !gamesPaged.Any())
+                                return null;
+
+                            var dtoList = gamesPaged.Select(g => _mapper.Map<GameDto>(g)).ToList();
+                            return new PagedListCacheDto<GameDto>
+                            {
+                                Items = dtoList,
+                                TotalCount = gamesPaged.TotalCount,
+                                PageNumber = gamesPaged.CurrentPage,
+                                PageSize = gamesPaged.PageSize
+                            };
+                        },
+                        memoryExpiration: TimeSpan.FromSeconds(30),
+                        redisExpiration: TimeSpan.FromMinutes(5)
+                    );
+
+                    if (cachedDto is null)
                     {
-                        return null;
+                        return new PagedList<GameDto>(
+                            new List<GameDto>(),
+                            0,
+                            parameters.PageNumber,
+                            parameters.PageSize);
                     }
-                    var dtoList = gamesPaged.Select(g => _mapper.Map<GameDto>(g)).ToList();
-                    return new PagedListCacheDto<GameDto>
-                    {
-                        Items = dtoList,
-                        TotalCount = gamesPaged.TotalCount,
-                        PageNumber = gamesPaged.CurrentPage,
-                        PageSize = gamesPaged.PageSize
-                    };
-                },
-                memoryExpiration: TimeSpan.FromSeconds(30),
-                redisExpiration: TimeSpan.FromMinutes(5)
-            );
 
-            if (cachedDto is null)
-            {
-                return new PagedList<GameDto>(new List<GameDto>(), 0, parameters.PageNumber, parameters.PageSize);
-            }
+                    GameMetrics.GamesFetched.Add(1, new TagList { TagConstants.Tags.OperationList });
 
-            return new PagedList<GameDto>(
-                cachedDto.Items,
-                cachedDto.TotalCount,
-                cachedDto.PageNumber,
-                cachedDto.PageSize
-            );
+                    return new PagedList<GameDto>(
+                        cachedDto.Items,
+                        cachedDto.TotalCount,
+                        cachedDto.PageNumber,
+                        cachedDto.PageSize);
+                });
         }
 
         public async Task<GameDto?> GetGameByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            string cacheKey = $"{CachePrefix}:{id}";
+            return await MetricRecorder.RecordOperationAsync(
+                GameMetrics.OperationLatency,
+                TagConstants.Values.GetById,
+                async () =>
+                {
+                    string cacheKey = $"{CachePrefix}:{id}";
 
-            return await _cacheService.GetOrSetAsync(
-                cacheKey,
-                async () => {
-                    var game = await _unitOfWork.Games.GetByIdWithDetailsAsync(id, cancellationToken);
-                    return game is null ? null : _mapper.Map<GameDto>(game);
-                },
-                memoryExpiration: TimeSpan.FromMinutes(2),
-                redisExpiration: TimeSpan.FromMinutes(30)
-            );
+                    var result = await _cacheService.GetOrSetAsync(
+                        cacheKey,
+                        async () =>
+                        {
+                            var game = await _unitOfWork.Games.GetByIdWithDetailsAsync(id, cancellationToken);
+                            return game is null ? null : _mapper.Map<GameDto>(game);
+                        },
+                        memoryExpiration: TimeSpan.FromMinutes(2),
+                        redisExpiration: TimeSpan.FromMinutes(30)
+                    );
+
+                    GameMetrics.RecordFetch(TagConstants.Values.GetById, result != null);
+
+                    return result;
+                });
         }
 
-        public async Task<GameDto> CreateGameAsync(GameCreateDto dto, CancellationToken cancellationToken = default)
+        public async Task<GameDto> CreateGameAsync(GameCreateDto gameCreateDto, CancellationToken cancellationToken = default)
         {
-            var game = _mapper.Map<Game>(dto);
-            await _unitOfWork.Games.AddAsync(game, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return await MetricRecorder.RecordOperationAsync(
+                GameMetrics.OperationLatency,
+                TagConstants.Values.Create,
+                async () =>
+                {
+                    var game = _mapper.Map<Game>(gameCreateDto);
+                    await _unitOfWork.Games.AddAsync(game, cancellationToken);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var createdDto = _mapper.Map<GameDto>(game);
+                    var createdDto = _mapper.Map<GameDto>(game);
 
-            await _cacheInvalidationService.InvalidateAllAsync();
+                    await _cacheInvalidationService.InvalidateAllAsync();
 
-            string cacheKey = $"{CachePrefix}:{game.Id}";
-            await _cacheService.SetAsync(cacheKey, createdDto,
-                memoryExpiration: TimeSpan.FromMinutes(2),
-                redisExpiration: TimeSpan.FromMinutes(30));
+                    string cacheKey = $"{CachePrefix}:{game.Id}";
+                    await _cacheService.SetAsync(
+                        cacheKey,
+                        createdDto,
+                        memoryExpiration: TimeSpan.FromMinutes(2),
+                        redisExpiration: TimeSpan.FromMinutes(30)
+                    );
 
-            return createdDto;
+                    GameMetrics.GamesCreated.Add(1, new TagList { TagConstants.Tags.OperationCreate });
+
+                    return createdDto;
+                });
         }
 
-        public async Task<GameDto> UpdateGameAsync(Guid id, GameUpdateDto dto, CancellationToken cancellationToken = default)
+        public async Task<GameDto> UpdateGameAsync(
+            Guid id,
+            GameUpdateDto updateDto,
+            CancellationToken cancellationToken = default)
         {
-            var game = await GetGameOrThrowAsync(id, cancellationToken);
+            return await MetricRecorder.RecordOperationAsync(
+                GameMetrics.OperationLatency,
+                TagConstants.Values.Update,
+                async () =>
+                {
+                    var game = await GetGameOrThrowAsync(id, cancellationToken);
 
-            game.Title = dto.Title ?? game.Title;
-            game.Description = dto.Description ?? game.Description;
-            game.Price = dto.Price ?? game.Price;
-            game.ReleaseDate = dto.ReleaseDate ?? game.ReleaseDate;
-            game.PublisherId = dto.PublisherId ?? game.PublisherId;
+                    game.Title = updateDto.Title ?? game.Title;
+                    game.Description = updateDto.Description ?? game.Description;
+                    game.Price = updateDto.Price ?? game.Price;
+                    game.ReleaseDate = updateDto.ReleaseDate ?? game.ReleaseDate;
+                    game.PublisherId = updateDto.PublisherId ?? game.PublisherId;
 
-            await _unitOfWork.Games.UpdateAsync(game);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+                    await _unitOfWork.Games.UpdateAsync(game);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheInvalidationService.InvalidateByIdAsync(id);
+                    await _cacheInvalidationService.InvalidateByIdAsync(id);
 
-            var updatedDto = _mapper.Map<GameDto>(game);
-            string cacheKey = $"{CachePrefix}:{id}";
-            await _cacheService.SetAsync(cacheKey, updatedDto,
-                memoryExpiration: TimeSpan.FromMinutes(2),
-                redisExpiration: TimeSpan.FromMinutes(30));
+                    var updatedDto = _mapper.Map<GameDto>(game);
+                    string cacheKey = $"{CachePrefix}:{id}";
+                    await _cacheService.SetAsync(
+                        cacheKey,
+                        updatedDto,
+                        memoryExpiration: TimeSpan.FromMinutes(2),
+                        redisExpiration: TimeSpan.FromMinutes(30)
+                    );
 
-            return updatedDto;
+                    GameMetrics.GamesUpdated.Add(1, new TagList { TagConstants.Tags.OperationUpdate });
+
+                    return updatedDto;
+                });
         }
 
         public async Task DeleteGameAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            await GetGameOrThrowAsync(id, cancellationToken);
-            await _unitOfWork.Games.DeleteAsync(id, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await MetricRecorder.RecordOperationAsync(
+                GameMetrics.OperationLatency,
+                TagConstants.Values.Delete,
+                async () =>
+                {
+                    await GetGameOrThrowAsync(id, cancellationToken);
+                    await _unitOfWork.Games.DeleteAsync(id, cancellationToken);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _cacheInvalidationService.InvalidateByIdAsync(id);
+                    await _cacheInvalidationService.InvalidateByIdAsync(id);
+
+                    GameMetrics.GamesDeleted.Add(1, new TagList { TagConstants.Tags.OperationDelete });
+                });
         }
 
         private async Task<Game> GetGameOrThrowAsync(Guid id, CancellationToken cancellationToken)
