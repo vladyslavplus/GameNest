@@ -1,0 +1,6 @@
+@GameNest.CartService.Api_HostAddress = http://localhost:5166
+
+GET {{GameNest.CartService.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
