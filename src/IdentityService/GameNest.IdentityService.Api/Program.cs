@@ -1,3 +1,4 @@
+using GameNest.IdentityService.BLL.Configuration;
 using GameNest.IdentityService.BLL.Interfaces;
 using GameNest.IdentityService.BLL.MappingProfiles;
 using GameNest.IdentityService.BLL.Services;
@@ -18,6 +19,9 @@ builder.Services.AddCorrelationIdForwarding();
 
 var connectionString = builder.Configuration.GetConnectionString("gamenest-identityservice-db")
                     ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtSettings"));
 
 builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseNpgsql(connectionString!));

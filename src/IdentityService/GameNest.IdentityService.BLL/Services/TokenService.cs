@@ -1,10 +1,13 @@
-﻿using GameNest.IdentityService.BLL.DTOs;
+﻿using GameNest.IdentityService.BLL.Configuration;
+using GameNest.IdentityService.BLL.DTOs;
 using GameNest.IdentityService.BLL.Interfaces;
 using GameNest.IdentityService.DAL.Interfaces;
 using GameNest.IdentityService.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
@@ -17,18 +20,18 @@ namespace GameNest.IdentityService.BLL.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly IConfiguration _configuration;
+        private readonly JwtSettings _jwtSettings;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ILogger<TokenService> _logger;
 
         public TokenService(
-            IConfiguration configuration,
+            IOptions<JwtSettings> jwtSettings,
             UserManager<ApplicationUser> userManager,
             IRefreshTokenRepository refreshTokenRepository,
             ILogger<TokenService> logger)
         {
-            _configuration = configuration;
+            _jwtSettings = jwtSettings.Value;
             _userManager = userManager;
             _refreshTokenRepository = refreshTokenRepository;
             _logger = logger;
@@ -82,11 +85,10 @@ namespace GameNest.IdentityService.BLL.Services
             return true;
         }
 
-
         private async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!);
+            var key = Encoding.UTF8.GetBytes(_jwtSettings.Key);
 
             var claims = new List<Claim>
             {
@@ -98,15 +100,16 @@ namespace GameNest.IdentityService.BLL.Services
 
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-            //claims.AddRange(roles.Select(role => new Claim("role", role)));
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:AccessTokenDurationMinutes"]!)),
-                Issuer = _configuration["JwtSettings:Issuer"],
-                Audience = _configuration["JwtSettings:Audience"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenDurationMinutes),
+                Issuer = _jwtSettings.Issuer,
+                Audience = _jwtSettings.Audience,
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -115,15 +118,23 @@ namespace GameNest.IdentityService.BLL.Services
 
         private async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId, CancellationToken cancellationToken)
         {
-            var randomNumber = new byte[64];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomNumber);
-            var token = Convert.ToBase64String(randomNumber);
+            string token;
+            RefreshToken? existingToken;
+
+            do
+            {
+                var randomNumber = new byte[64];
+                using var rng = RandomNumberGenerator.Create();
+                rng.GetBytes(randomNumber);
+                token = Convert.ToBase64String(randomNumber);
+
+                existingToken = await _refreshTokenRepository.GetByTokenAsync(token, cancellationToken);
+            } while (existingToken != null);
 
             var refreshToken = new RefreshToken
             {
                 Token = token,
-                Expires = DateTime.UtcNow.AddDays(double.Parse(_configuration["JwtSettings:RefreshTokenDurationDays"]!)),
+                Expires = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenDurationDays),
                 CreatedAt = DateTime.UtcNow,
                 UserId = userId
             };
