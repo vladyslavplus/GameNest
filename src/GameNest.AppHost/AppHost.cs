@@ -12,6 +12,7 @@ var mongoDb = mongo.AddDatabase("gamenest-reviewservice-db");
 
 var ordersDb = postgres.AddDatabase("gamenest-orderservice-db");
 var catalogDb = postgres.AddDatabase("gamenest-catalogservice-db");
+var identityDb = postgres.AddDatabase("gamenest-identityservice-db");
 
 var redis = builder.AddRedis("redis")
     .WithDataVolume()
@@ -59,6 +60,17 @@ var cartService = builder.AddProject<Projects.GameNest_CartService_Api>("cartser
     .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
+var identityService = builder.AddProject<Projects.GameNest_IdentityService_Api>("identityservice-api")
+    .WithReference(identityDb)
+    .WaitFor(identityDb)
+    .WithHttpEndpoint(port: 5006, name: "identity-http")
+    .WithHttpsEndpoint(port: 7051, name: "identity-https")
+    .WithHttpHealthCheck("/health")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("JwtSettings__Key", "THIS_IS_A_SUPER_SECRET_KEY_FOR_GAMENEST_32_BYTES_LONG")
+    .WithEnvironment("JwtSettings__Issuer", "GameNest.IdentityService")
+    .WithEnvironment("JwtSettings__Audience", "GameNest.Services");
+
 var aggregatorService = builder.AddProject<Projects.GameNest_AggregatorService>("aggregatorservice-api")
     .WithReference(orderservice)
     .WithReference(catalogService)
@@ -79,11 +91,13 @@ builder.AddProject<Projects.GameNest_ApiGateway>("gateway")
     .WithReference(reviewsService)
     .WithReference(aggregatorService)
     .WithReference(cartService)
+    .WithReference(identityService)
     .WaitFor(orderservice)
     .WaitFor(catalogService)
     .WaitFor(reviewsService)
     .WaitFor(aggregatorService)
     .WaitFor(cartService)
+    .WaitFor(identityService)
     .WithHttpEndpoint(port: 5000, name: "gateway-http")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithHttpHealthCheck("/health");

@@ -52,5 +52,13 @@
                 "https://example.com/game_photo.jpg"
             ];
         }
+
+        public static class Users
+        {
+            public const string Admin = "99999999-9999-9999-9999-999999999999";
+            public const string JohnDoe = "22222222-2222-2222-2222-222222222222";
+            public const string AliceWonder = "44444444-4444-4444-4444-444444444444";
+            public const string MarkSmith = "66666666-6666-6666-6666-666666666666";
+        }
     }
 }

@@ -67,6 +67,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CartService.DAL", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.CartService.Domain", "src\CartService\GameNest.CartService.Domain\GameNest.CartService.Domain.csproj", "{374C598C-E3FA-4D23-BF05-73AB7A7DAC3E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IdentityService", "IdentityService", "{1378CF0D-727D-44A3-A094-A739053229D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.IdentityService.Api", "src\IdentityService\GameNest.IdentityService.Api\GameNest.IdentityService.Api.csproj", "{B88DA026-8A3A-4223-9126-AFE26A83959D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.IdentityService.BLL", "src\IdentityService\GameNest.IdentityService.BLL\GameNest.IdentityService.BLL.csproj", "{1DB129F2-370D-44C5-9B1D-2E68F92471EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.IdentityService.DAL", "src\IdentityService\GameNest.IdentityService.DAL\GameNest.IdentityService.DAL.csproj", "{3DE93ACD-DD50-41E8-BABF-CECBC6A3382B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.IdentityService.Domain", "src\IdentityService\GameNest.IdentityService.Domain\GameNest.IdentityService.Domain.csproj", "{87D4E838-9F6C-44CA-80CF-95D9EF670BAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -173,6 +183,22 @@ Global
 		{374C598C-E3FA-4D23-BF05-73AB7A7DAC3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{374C598C-E3FA-4D23-BF05-73AB7A7DAC3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{374C598C-E3FA-4D23-BF05-73AB7A7DAC3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B88DA026-8A3A-4223-9126-AFE26A83959D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B88DA026-8A3A-4223-9126-AFE26A83959D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B88DA026-8A3A-4223-9126-AFE26A83959D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B88DA026-8A3A-4223-9126-AFE26A83959D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DB129F2-370D-44C5-9B1D-2E68F92471EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DB129F2-370D-44C5-9B1D-2E68F92471EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DB129F2-370D-44C5-9B1D-2E68F92471EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DB129F2-370D-44C5-9B1D-2E68F92471EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DE93ACD-DD50-41E8-BABF-CECBC6A3382B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DE93ACD-DD50-41E8-BABF-CECBC6A3382B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DE93ACD-DD50-41E8-BABF-CECBC6A3382B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DE93ACD-DD50-41E8-BABF-CECBC6A3382B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87D4E838-9F6C-44CA-80CF-95D9EF670BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87D4E838-9F6C-44CA-80CF-95D9EF670BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87D4E838-9F6C-44CA-80CF-95D9EF670BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87D4E838-9F6C-44CA-80CF-95D9EF670BAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,6 +234,11 @@ Global
 		{D0FCFEAD-4C86-4512-8C31-067D79E3308D} = {E166C1B6-1BD6-4EF5-ACA4-FC4E35892386}
 		{98E55EA7-3A1C-4CDF-83B0-D822C05B85A8} = {E166C1B6-1BD6-4EF5-ACA4-FC4E35892386}
 		{374C598C-E3FA-4D23-BF05-73AB7A7DAC3E} = {E166C1B6-1BD6-4EF5-ACA4-FC4E35892386}
+		{1378CF0D-727D-44A3-A094-A739053229D2} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B88DA026-8A3A-4223-9126-AFE26A83959D} = {1378CF0D-727D-44A3-A094-A739053229D2}
+		{1DB129F2-370D-44C5-9B1D-2E68F92471EF} = {1378CF0D-727D-44A3-A094-A739053229D2}
+		{3DE93ACD-DD50-41E8-BABF-CECBC6A3382B} = {1378CF0D-727D-44A3-A094-A739053229D2}
+		{87D4E838-9F6C-44CA-80CF-95D9EF670BAF} = {1378CF0D-727D-44A3-A094-A739053229D2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BFE9F865-6438-4B5B-A53A-E7ABF9EDEA19}
