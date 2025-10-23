@@ -3,6 +3,7 @@ using GameNest.CartService.BLL.DTOs;
 using GameNest.CartService.BLL.Interfaces;
 using GameNest.CartService.DAL.Interfaces;
 using GameNest.CartService.Domain.Entities;
+using GameNest.CartService.Grpc.Clients.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace GameNest.CartService.BLL.Services
@@ -12,15 +13,18 @@ namespace GameNest.CartService.BLL.Services
         private readonly ICartRepository _cartRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<CartService> _logger;
+        private readonly IGameGrpcClient _gameClient;
 
         public CartService(
             ICartRepository cartRepository,
             IMapper mapper,
-            ILogger<CartService> logger)
+            ILogger<CartService> logger,
+            IGameGrpcClient gameClient)
         {
             _cartRepository = cartRepository;
             _mapper = mapper;
             _logger = logger;
+            _gameClient = gameClient;
         }
 
         public async Task<ShoppingCartDto> GetCartAsync(Guid userId)
@@ -29,25 +33,54 @@ namespace GameNest.CartService.BLL.Services
             return _mapper.Map<ShoppingCartDto>(cart);
         }
 
-        public async Task<ShoppingCartDto> AddOrUpdateItemAsync(Guid userId, CartItemAddDto itemDto)
+        public async Task<ShoppingCartDto> AddOrUpdateItemAsync(Guid userId, CartItemChangeDto itemDto)
         {
-            var cart = await _cartRepository.GetCartAsync(userId);
-            var item = _mapper.Map<ShoppingCartItem>(itemDto);
+            var game = await _gameClient.GetGameByIdAsync(itemDto.ProductId);
+            if (game == null)
+            {
+                _logger.LogWarning("Game with ID {ProductId} not found when changing cart for user {UserId}", itemDto.ProductId, userId);
+                throw new KeyNotFoundException($"Game with ID {itemDto.ProductId} not found.");
+            }
 
-            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == item.ProductId);
+            var cart = await _cartRepository.GetCartAsync(userId);
+            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == itemDto.ProductId);
 
             if (existingItem != null)
             {
-                _logger.LogInformation("Updating item {ProductId} in cart for user {UserId}. New quantity: {Quantity}",
-                    item.ProductId, userId, item.Quantity);
-                existingItem.Quantity = item.Quantity;
-                existingItem.Price = item.Price;
+                existingItem.Quantity += itemDto.Quantity;
+                existingItem.Price = (decimal)game.Price;
+
+                if (existingItem.Quantity <= 0)
+                {
+                    cart.Items.Remove(existingItem);
+                    _logger.LogInformation("Removed game {ProductId} from cart for user {UserId} as quantity reached zero or less.",
+                        itemDto.ProductId, userId);
+                }
+                else
+                {
+                    _logger.LogInformation("Updated quantity for game {ProductId} in cart for user {UserId}. New quantity: {Quantity}",
+                        itemDto.ProductId, userId, existingItem.Quantity);
+                }
             }
             else
             {
-                _logger.LogInformation("Adding new item {ProductId} to cart for user {UserId}. Quantity: {Quantity}",
-                    item.ProductId, userId, item.Quantity);
-                cart.Items.Add(item);
+                if (itemDto.Quantity > 0)
+                {
+                    var newItem = new ShoppingCartItem
+                    {
+                        ProductId = itemDto.ProductId,
+                        Quantity = itemDto.Quantity,
+                        Price = (decimal)game.Price
+                    };
+                    cart.Items.Add(newItem);
+                    _logger.LogInformation("Added new game {ProductId} to cart for user {UserId} with quantity {Quantity}.",
+                        itemDto.ProductId, userId, itemDto.Quantity);
+                }
+                else
+                {
+                    _logger.LogWarning("Attempted to subtract quantity from non-existent item {ProductId} for user {UserId}.",
+                        itemDto.ProductId, userId);
+                }
             }
 
             var updatedCart = await _cartRepository.UpdateCartAsync(cart);
@@ -61,16 +94,13 @@ namespace GameNest.CartService.BLL.Services
 
             if (itemToRemove != null)
             {
-                _logger.LogInformation("Removing item {ProductId} from cart for user {UserId}.",
-                    productId, userId);
                 cart.Items.Remove(itemToRemove);
+                _logger.LogInformation("Removed item {ProductId} from cart for user {UserId}.", productId, userId);
                 var updatedCart = await _cartRepository.UpdateCartAsync(cart);
                 return _mapper.Map<ShoppingCartDto>(updatedCart);
             }
 
-            _logger.LogWarning("Attempted to remove non-existent item {ProductId} from cart for user {UserId}.",
-                productId, userId);
-
+            _logger.LogWarning("Attempted to remove non-existent item {ProductId} from cart for user {UserId}.", productId, userId);
             return _mapper.Map<ShoppingCartDto>(cart);
         }
 

@@ -10,10 +10,7 @@ namespace GameNest.CartService.BLL.MappingProfiles
         {
             CreateMap<ShoppingCart, ShoppingCartDto>();
             CreateMap<ShoppingCartItem, ShoppingCartItemDto>();
-
             CreateMap<ShoppingCartItemDto, ShoppingCartItem>();
-
-            CreateMap<CartItemAddDto, ShoppingCartItem>();
         }
     }
 }

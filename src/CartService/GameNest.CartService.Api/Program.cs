@@ -1,9 +1,12 @@
-using GameNest.CartService.Api.Middlewares;
+﻿using GameNest.CartService.Api.Middlewares;
 using GameNest.CartService.BLL.Interfaces;
 using GameNest.CartService.BLL.MappingProfiles;
 using GameNest.CartService.BLL.Services;
 using GameNest.CartService.DAL.Interfaces;
 using GameNest.CartService.DAL.Repositories;
+using GameNest.CartService.Grpc.Clients;
+using GameNest.CartService.Grpc.Clients.Interfaces;
+using GameNest.Grpc.Games;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.ServiceDefaults.Redis;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -14,22 +17,33 @@ builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddGrpcWithObservability(builder.Environment);
+builder.Services.AddServiceDiscovery();
 
-builder.Services.AddSingleton(provider =>
-{
-    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-    var config = AutoMapperConfig.RegisterMappings(loggerFactory);
-    return config.CreateMapper();
-});
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddAutoMapperWithLogging(typeof(CartProfile).Assembly);
 
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 
 builder.Services.AddRedisCache(builder.Configuration);
 
+builder.Services.AddGrpcClient<GameGrpcService.GameGrpcServiceClient>(options =>
+{
+    options.Address = new Uri("https://catalogservice-api");
+})
+.ConfigureChannel(channelOptions =>
+{
+    channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
+    channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
+})
+.AddServiceDiscovery()
+.AddGrpcResilienceHandler(ResilienceProfile.Standard);
+
+builder.Services.AddScoped<IGameGrpcClient, GameGrpcClient>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerWithAuth("GameNest Cart API");
 
 builder.Services.AddHealthChecks()
     .AddRedis(
@@ -41,12 +55,9 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
+app.UseSwaggerInDevelopment();
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
@@ -54,6 +65,7 @@ app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseCorrelationId();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");

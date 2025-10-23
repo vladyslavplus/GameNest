@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GameNest.CartService.DAL\GameNest.CartService.DAL.csproj" />
     <ProjectReference Include="..\GameNest.CartService.Domain\GameNest.CartService.Domain.csproj" />
+    <ProjectReference Include="..\GameNest.CartService.Grpc\GameNest.CartService.Grpc.csproj" />
   </ItemGroup>
 
 </Project>

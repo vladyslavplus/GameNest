@@ -14,6 +14,10 @@ var ordersDb = postgres.AddDatabase("gamenest-orderservice-db");
 var catalogDb = postgres.AddDatabase("gamenest-catalogservice-db");
 var identityDb = postgres.AddDatabase("gamenest-identityservice-db");
 
+var jwtKey = "THIS_IS_A_SUPER_SECRET_KEY_FOR_GAMENEST_32_BYTES_LONG";
+var jwtIssuer = "GameNest.IdentityService";
+var jwtAudience = "GameNest.Services";
+
 var redis = builder.AddRedis("redis")
     .WithDataVolume()
     .WithRedisCommander();
@@ -54,11 +58,16 @@ var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("r
 
 var cartService = builder.AddProject<Projects.GameNest_CartService_Api>("cartservice-api")
     .WithReference(redis)
+    .WithReference(catalogService)
     .WaitFor(redis)
+    .WaitFor(catalogService)
     .WithHttpEndpoint(port: 5005, name: "cart-http")
     .WithHttpsEndpoint(port: 7050, name: "cart-https")
     .WithHttpHealthCheck("/health")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("JwtSettings__Key", jwtKey)
+    .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
+    .WithEnvironment("JwtSettings__Audience", jwtAudience);
 
 var identityService = builder.AddProject<Projects.GameNest_IdentityService_Api>("identityservice-api")
     .WithReference(identityDb)
@@ -67,9 +76,9 @@ var identityService = builder.AddProject<Projects.GameNest_IdentityService_Api>(
     .WithHttpsEndpoint(port: 7051, name: "identity-https")
     .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
-    .WithEnvironment("JwtSettings__Key", "THIS_IS_A_SUPER_SECRET_KEY_FOR_GAMENEST_32_BYTES_LONG")
-    .WithEnvironment("JwtSettings__Issuer", "GameNest.IdentityService")
-    .WithEnvironment("JwtSettings__Audience", "GameNest.Services");
+    .WithEnvironment("JwtSettings__Key", jwtKey)
+    .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
+    .WithEnvironment("JwtSettings__Audience", jwtAudience);
 
 var aggregatorService = builder.AddProject<Projects.GameNest_AggregatorService>("aggregatorservice-api")
     .WithReference(orderservice)
