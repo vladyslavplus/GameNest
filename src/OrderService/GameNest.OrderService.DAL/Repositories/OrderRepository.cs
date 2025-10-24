@@ -8,7 +8,7 @@ namespace GameNest.OrderService.DAL.Repositories
     public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {
         public OrderRepository(IDbConnection connection, IDbTransaction? transaction = null)
-            : base("\"order\"", connection, transaction)  
+            : base("\"order\"", connection, transaction)
         {
         }
 
@@ -24,10 +24,42 @@ namespace GameNest.OrderService.DAL.Repositories
             ));
         }
 
+        public async Task<IEnumerable<Order>> GetAllWithItemsAsync(CancellationToken ct = default)
+        {
+            var query = @"
+                SELECT o.*, i.*
+                FROM ""order"" o
+                LEFT JOIN order_item i ON o.id = i.order_id
+                WHERE o.is_deleted = FALSE
+                ORDER BY o.created_at DESC";
+
+            var orderDict = new Dictionary<Guid, Order>();
+            await _connection.QueryAsync<Order, OrderItem, Order>(
+                new CommandDefinition(query, transaction: _transaction, cancellationToken: ct),
+                (order, item) =>
+                {
+                    if (!orderDict.TryGetValue(order.Id, out var currentOrder))
+                    {
+                        currentOrder = order;
+                        currentOrder.Items = new List<OrderItem>();
+                        orderDict.Add(order.Id, currentOrder);
+                    }
+
+                    if (item != null)
+                        currentOrder.Items.Add(item);
+
+                    return currentOrder;
+                },
+                splitOn: "Id"
+            );
+
+            return orderDict.Values;
+        }
+
         public async Task<Order?> GetWithItemsByIdAsync(Guid orderId, CancellationToken ct = default)
         {
             var query = @"
-                SELECT o.*, i.* 
+                SELECT o.*, i.*
                 FROM ""order"" o
                 LEFT JOIN order_item i ON o.id = i.order_id
                 WHERE o.id = @OrderId AND o.is_deleted = FALSE";
@@ -55,8 +87,14 @@ namespace GameNest.OrderService.DAL.Repositories
         public override async Task<Guid> CreateAsync(Order order, CancellationToken ct = default)
         {
             var query = @"
-                INSERT INTO ""order"" (customer_id, status, total_amount) 
-                VALUES (@CustomerId, @Status, @TotalAmount)
+                INSERT INTO ""order"" (
+                    customer_id, status, total_amount,
+                    country, city, street, zip_code
+                )
+                VALUES (
+                    @CustomerId, @Status, @TotalAmount,
+                    @Country, @City, @Street, @ZipCode
+                )
                 RETURNING id";
 
             return await _connection.ExecuteScalarAsync<Guid>(
@@ -64,7 +102,11 @@ namespace GameNest.OrderService.DAL.Repositories
                 {
                     CustomerId = order.Customer_Id,
                     Status = order.Status,
-                    TotalAmount = order.Total_Amount
+                    TotalAmount = order.Total_Amount,
+                    Country = order.Country,
+                    City = order.City,
+                    Street = order.Street,
+                    ZipCode = order.ZipCode
                 }, _transaction, cancellationToken: ct)
             );
         }
@@ -72,9 +114,8 @@ namespace GameNest.OrderService.DAL.Repositories
         public override async Task UpdateAsync(Order entity, CancellationToken ct = default)
         {
             var query = @"
-                UPDATE ""order"" 
-                SET status = @Status, 
-                    total_amount = @TotalAmount,
+                UPDATE ""order""
+                SET status = @Status,
                     updated_at = @UpdatedAt
                 WHERE id = @Id AND is_deleted = FALSE";
 
@@ -83,8 +124,7 @@ namespace GameNest.OrderService.DAL.Repositories
                 {
                     Id = entity.Id,
                     Status = entity.Status,
-                    TotalAmount = entity.Total_Amount,
-                    UpdatedAt = entity.Updated_At
+                    UpdatedAt = DateTime.UtcNow
                 }, _transaction, cancellationToken: ct)
             );
 

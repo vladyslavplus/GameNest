@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="8.2.2" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
     <PackageReference Include="Npgsql" Version="8.0.5" />
@@ -20,7 +21,8 @@
     <ProjectReference Include="..\..\..\shared\GameNest.ServiceDefaults\GameNest.ServiceDefaults.csproj" />
     <ProjectReference Include="..\GameNest.OrderService.BLL\GameNest.OrderService.BLL.csproj" />
     <ProjectReference Include="..\GameNest.OrderService.DAL\GameNest.OrderService.DAL.csproj" />
-    <ProjectReference Include="..\GameNest.OrderService.Grpc\GameNest.OrderService.Grpc.csproj" />
+    <ProjectReference Include="..\GameNest.OrderService.GrpcClients\GameNest.OrderService.GrpcClients.csproj" />
+    <ProjectReference Include="..\GameNest.OrderService.GrpcServer\GameNest.OrderService.GrpcServer.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,8 @@ syntax = "proto3";
 option csharp_namespace = "GameNest.Grpc.Orders";
 package orders;
 
+import "orderitem.proto";
+
 service OrderGrpcService {
   rpc GetAllOrders (GetAllOrdersRequest) returns (OrdersResponse);
   rpc GetOrderById (GetOrderByIdRequest) returns (OrderResponse);
@@ -27,6 +29,10 @@ message Order {
   string orderDate = 3;
   string status = 4;
   double totalAmount = 5;
-  string createdAt = 6;
-  string updatedAt = 7;
+  string country = 6;
+  string city = 7;
+  string street = 8;
+  string zipCode = 9;
+  string createdAt = 10;
+  repeated orderitems.OrderItem items = 11;
 }

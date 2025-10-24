@@ -42,7 +42,7 @@ namespace GameNest.AggregatorService.Services
                 CustomerId = Guid.Parse(order.CustomerId),
                 OrderDate = DateTime.Parse(order.OrderDate, CultureInfo.InvariantCulture),
                 Status = order.Status,
-                TotalAmount = (decimal)order.TotalAmount, 
+                TotalAmount = (decimal)order.TotalAmount,
                 Items = itemsList,
                 ItemCount = itemCount,
                 PartialData = itemCount == 0,

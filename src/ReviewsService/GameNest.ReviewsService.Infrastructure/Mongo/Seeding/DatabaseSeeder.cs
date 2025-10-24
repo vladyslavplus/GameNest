@@ -45,17 +45,17 @@ namespace GameNest.ReviewsService.Infrastructure.Mongo.Seeding
                 return await _context.Reviews.Find(FilterDefinition<Review>.Empty).ToListAsync(cancellationToken);
             }
 
-            var reviewData = new List<(string GameId, string CustomerId, double Rating, string Text)>
+            var reviewData = new List<(string GameId, string UserId, double Rating, string Text)>
             {
-                (SharedSeedData.Games.TheWitcher3, SharedSeedData.Customers.JohnDoe, 4.5, SharedSeedData.ReviewTexts.Default[0]),
-                (SharedSeedData.Games.DoomEternal, SharedSeedData.Customers.AliceWonder, 3.8, SharedSeedData.ReviewTexts.Default[1]),
-                (SharedSeedData.Games.StardewValley, SharedSeedData.Customers.MarkSmith, 5.0, SharedSeedData.ReviewTexts.Default[2]),
-                (SharedSeedData.Games.Cyberpunk2077, SharedSeedData.Customers.BobMarley, 2.5, SharedSeedData.ReviewTexts.Default[3])
+                (SharedSeedData.Games.TheWitcher3, SharedSeedData.Users.JohnDoe, 4.5, SharedSeedData.ReviewTexts.Default[0]),
+                (SharedSeedData.Games.DoomEternal, SharedSeedData.Users.AliceWonder, 3.8, SharedSeedData.ReviewTexts.Default[1]),
+                (SharedSeedData.Games.StardewValley, SharedSeedData.Users.MarkSmith, 5.0, SharedSeedData.ReviewTexts.Default[2]),
+                (SharedSeedData.Games.Cyberpunk2077, SharedSeedData.Users.Admin, 2.5, SharedSeedData.ReviewTexts.Default[3])
             };
 
             var reviews = reviewData.Select(r => new Review(
                 gameId: r.GameId,
-                customerId: r.CustomerId,
+                customerId: r.UserId,
                 rating: new Rating(r.Rating),
                 text: new ReviewText(r.Text),
                 createdBy: "DatabaseSeeder"

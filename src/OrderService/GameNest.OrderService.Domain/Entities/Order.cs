@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace GameNest.OrderService.Domain.Entities
+﻿namespace GameNest.OrderService.Domain.Entities
 {
     public class Order : BaseEntity
     {
@@ -8,7 +6,10 @@ namespace GameNest.OrderService.Domain.Entities
         public DateTime Order_Date { get; set; } = DateTime.UtcNow;
         public string Status { get; set; } = null!;
         public decimal Total_Amount { get; set; }
-        [NotMapped]
+        public string Country { get; set; } = null!;
+        public string City { get; set; } = null!;
+        public string Street { get; set; } = null!;
+        public string ZipCode { get; set; } = null!;
         public List<OrderItem> Items { get; set; } = new();
     }
 }

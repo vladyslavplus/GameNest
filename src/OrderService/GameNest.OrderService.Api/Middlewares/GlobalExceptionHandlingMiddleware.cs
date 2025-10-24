@@ -41,15 +41,15 @@ namespace GameNest.OrderService.Api.Middlewares
                     title = "Resource Not Found";
                     break;
                 case BusinessConflictException:
-                    status = HttpStatusCode.Conflict; 
+                    status = HttpStatusCode.Conflict;
                     title = "Business Conflict";
                     break;
                 case ValidationException:
-                    status = HttpStatusCode.BadRequest; 
+                    status = HttpStatusCode.BadRequest;
                     title = "Validation Error";
                     break;
                 default:
-                    status = HttpStatusCode.InternalServerError; 
+                    status = HttpStatusCode.InternalServerError;
                     title = "Internal Server Error";
                     _logger.LogError(exception, "Unhandled exception occurred.");
                     break;

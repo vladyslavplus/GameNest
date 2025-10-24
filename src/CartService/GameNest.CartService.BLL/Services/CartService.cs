@@ -3,7 +3,7 @@ using GameNest.CartService.BLL.DTOs;
 using GameNest.CartService.BLL.Interfaces;
 using GameNest.CartService.DAL.Interfaces;
 using GameNest.CartService.Domain.Entities;
-using GameNest.CartService.Grpc.Clients.Interfaces;
+using GameNest.CartService.GrpcClients.Clients.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace GameNest.CartService.BLL.Services
@@ -30,7 +30,29 @@ namespace GameNest.CartService.BLL.Services
         public async Task<ShoppingCartDto> GetCartAsync(Guid userId)
         {
             var cart = await _cartRepository.GetCartAsync(userId);
-            return _mapper.Map<ShoppingCartDto>(cart);
+            var cartDto = _mapper.Map<ShoppingCartDto>(cart);
+
+            if (cartDto.Items?.Any(i => string.IsNullOrEmpty(i.ProductTitle)) == true)
+            {
+                _logger.LogInformation("Enriching missing product titles for user {UserId}", userId);
+                var tasks = cartDto.Items
+                    .Where(i => string.IsNullOrEmpty(i.ProductTitle))
+                    .Select(async item =>
+                    {
+                        try
+                        {
+                            var game = await _gameClient.GetGameByIdAsync(item.ProductId);
+                            item.ProductTitle = game?.Title ?? "Unknown Product";
+                        }
+                        catch
+                        {
+                            item.ProductTitle = "Unknown Product";
+                        }
+                    });
+                await Task.WhenAll(tasks);
+            }
+
+            return cartDto;
         }
 
         public async Task<ShoppingCartDto> AddOrUpdateItemAsync(Guid userId, CartItemChangeDto itemDto)

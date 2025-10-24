@@ -8,13 +8,15 @@ namespace GameNest.OrderService.BLL.Mappings
     {
         public OrderItemProfile()
         {
-            CreateMap<OrderItem, OrderItemDto>();
+            CreateMap<OrderItem, OrderItemDto>()
+                .ForMember(dest => dest.Order_Id, opt => opt.MapFrom(src => src.Order_Id))
+                .ForMember(dest => dest.Product_Id, opt => opt.MapFrom(src => src.Product_Id))
+                .ForMember(dest => dest.Product_Title, opt => opt.MapFrom(src => src.Product_Title));
 
-            CreateMap<OrderItemCreateDto, OrderItem>();
-
-            CreateMap<OrderItemUpdateDto, OrderItem>()
-                .ForAllMembers(opts =>
-                    opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<OrderItemDto, OrderItem>()
+                .ForMember(dest => dest.Order_Id, opt => opt.MapFrom(src => src.Order_Id))
+                .ForMember(dest => dest.Product_Id, opt => opt.MapFrom(src => src.Product_Id))
+                .ForMember(dest => dest.Product_Title, opt => opt.MapFrom(src => src.Product_Title));
         }
     }
 }

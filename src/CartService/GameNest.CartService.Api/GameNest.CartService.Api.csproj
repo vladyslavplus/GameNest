@@ -15,7 +15,8 @@
     <ProjectReference Include="..\..\..\shared\GameNest.ServiceDefaults\GameNest.ServiceDefaults.csproj" />
     <ProjectReference Include="..\GameNest.CartService.BLL\GameNest.CartService.BLL.csproj" />
     <ProjectReference Include="..\GameNest.CartService.DAL\GameNest.CartService.DAL.csproj" />
-    <ProjectReference Include="..\GameNest.CartService.Grpc\GameNest.CartService.Grpc.csproj" />
+    <ProjectReference Include="..\GameNest.CartService.GrpcClients\GameNest.CartService.GrpcClients.csproj" />
+    <ProjectReference Include="..\GameNest.CartService.GrpcServer\GameNest.CartService.GrpcServer.csproj" />
   </ItemGroup>
 
 </Project>

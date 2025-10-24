@@ -88,12 +88,12 @@ namespace GameNest.AggregatorService.Clients
         private static OrderItemDto MapToDto(OrderItem grpcItem)
         {
             if (grpcItem == null) return null!;
-
             return new OrderItemDto
             {
                 Id = Guid.TryParse(grpcItem.Id, out var id) ? id : Guid.Empty,
                 OrderId = Guid.TryParse(grpcItem.OrderId, out var oid) ? oid : Guid.Empty,
                 ProductId = Guid.TryParse(grpcItem.ProductId, out var pid) ? pid : Guid.Empty,
+                ProductTitle = grpcItem.ProductTitle,
                 Quantity = grpcItem.Quantity,
                 Price = (decimal)grpcItem.Price
             };

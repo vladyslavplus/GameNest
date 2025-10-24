@@ -1,50 +1,20 @@
 \c "gamenest-orderservice-db";
 -- ============================================================
---  Table: Customer
---  Stores registered users
--- ============================================================
-CREATE TABLE customer (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(50) UNIQUE NOT NULL, 
-    email VARCHAR(100) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    created_by UUID,
-    updated_at TIMESTAMP DEFAULT NOW(),
-    updated_by UUID,
-    is_deleted BOOLEAN DEFAULT FALSE
-);
-
-CREATE INDEX idx_customer_username ON customer(username);
-CREATE INDEX idx_customer_email ON customer(email);
-
--- ============================================================
---  Table: Product
---  Stores available products
--- ============================================================
-CREATE TABLE product (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title VARCHAR(200) NOT NULL,
-    description TEXT,                    
-    price DECIMAL(10,2) NOT NULL CHECK (price > 0),
-    created_at TIMESTAMP DEFAULT NOW(),
-    created_by UUID,
-    updated_at TIMESTAMP DEFAULT NOW(),
-    updated_by UUID,
-    is_deleted BOOLEAN DEFAULT FALSE
-);
-
-CREATE INDEX idx_product_title ON product(title);
-
--- ============================================================
 --  Table: Order
---  Stores customer orders
+--  Stores customer orders (linked to IdentityService user by ID)
 -- ============================================================
 CREATE TABLE "order" (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    customer_id UUID NOT NULL REFERENCES customer(id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL,
     order_date TIMESTAMP DEFAULT NOW(),
     status VARCHAR(20) NOT NULL CHECK (status IN ('Pending','Paid','Cancelled','Refunded')),
-    total_amount DECIMAL(10,2) CHECK (total_amount >= 0),
+    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
+
+    country VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    street VARCHAR(200) NOT NULL,
+    zip_code VARCHAR(20) NOT NULL,
+
     created_at TIMESTAMP DEFAULT NOW(),
     created_by UUID,
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -53,15 +23,18 @@ CREATE TABLE "order" (
 );
 
 CREATE INDEX idx_order_customer_id ON "order"(customer_id);
+CREATE INDEX idx_order_status ON "order"(status);
+CREATE INDEX idx_order_city ON "order"(city);
 
 -- ============================================================
 --  Table: OrderItem
---  Items that belong to an order (M:N relation between orders and products)
+--  Items that belong to an order (copied from CartService)
 -- ============================================================
 CREATE TABLE order_item (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id UUID NOT NULL REFERENCES "order"(id) ON DELETE CASCADE,
-    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL,
+    product_title VARCHAR(200) NOT NULL,
     quantity INT NOT NULL CHECK (quantity > 0),
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
     created_at TIMESTAMP DEFAULT NOW(),
@@ -95,37 +68,42 @@ CREATE TABLE payment_record (
 CREATE INDEX idx_payment_order_id ON payment_record(order_id);
 
 -- ============================================================
---  Seed Data with Audit
+--  Seed Data (Shared GUIDs)
 -- ============================================================
 
-INSERT INTO customer (username, email, created_by, updated_by) VALUES
-('john_doe', 'john@example.com', NULL, NULL),
-('alice_wonder', 'alice@example.com', NULL, NULL),
-('mark_smith', 'mark@example.com', NULL, NULL);
+-- Users (from SharedSeedData.Users)
+-- JohnDoe = 22222222-2222-2222-2222-222222222222
+-- AliceWonder = 44444444-4444-4444-4444-444444444444
 
-INSERT INTO product (title, description, price, created_by, updated_by) VALUES
-('Gaming Laptop', 'High-end gaming laptop with RTX 4080', 1200.00, NULL, NULL),
-('Wireless Mouse', 'Ergonomic wireless mouse', 25.50, NULL, NULL),
-('Mechanical Keyboard', 'RGB mechanical keyboard with blue switches', 89.99, NULL, NULL),
-('4K Monitor', '27-inch 4K UHD monitor', 350.00, NULL, NULL);
+-- Games (from SharedSeedData.Games)
+-- TheWitcher3 = 11111111-1111-1111-1111-111111111111
+-- DoomEternal = 33333333-3333-3333-3333-333333333333
+-- StardewValley = 55555555-5555-5555-5555-555555555555
+-- Cyberpunk2077 = 77777777-7777-7777-7777-777777777777
 
-INSERT INTO "order" (customer_id, status, total_amount, created_by, updated_by)
+INSERT INTO "order" (id, customer_id, status, total_amount, country, city, street, zip_code)
 VALUES
-((SELECT id FROM customer WHERE username = 'john_doe'), 'Pending', 1225.50, NULL, NULL),
-((SELECT id FROM customer WHERE username = 'alice_wonder'), 'Paid', 89.99, NULL, NULL);
+(
+    'a1a1a1a1-aaaa-aaaa-aaaa-000000000001',
+    '22222222-2222-2222-2222-222222222222',
+    'Pending',
+    1350.00,
+    'USA', 'New York', '123 Main St', '10001'
+),
+(
+    'a2a2a2a2-bbbb-bbbb-bbbb-000000000002',
+    '44444444-4444-4444-4444-444444444444',
+    'Paid',
+    89.99,
+    'Canada', 'Toronto', '456 Queen St', 'M5H 2N2'
+);
 
-INSERT INTO order_item (order_id, product_id, quantity, price, created_by, updated_by)
+INSERT INTO order_item (order_id, product_id, product_title, quantity, price)
 VALUES
--- John's Order: Laptop + Mouse
-((SELECT id FROM "order" WHERE total_amount = 1225.50),
- (SELECT id FROM product WHERE title = 'Gaming Laptop'), 1, 1200.00, NULL, NULL),
-((SELECT id FROM "order" WHERE total_amount = 1225.50),
- (SELECT id FROM product WHERE title = 'Wireless Mouse'), 1, 25.50, NULL, NULL),
+('a1a1a1a1-aaaa-aaaa-aaaa-000000000001', '11111111-1111-1111-1111-111111111111', 'The Witcher 3: Wild Hunt', 1, 1250.00),
+('a1a1a1a1-aaaa-aaaa-aaaa-000000000001', '33333333-3333-3333-3333-333333333333', 'DOOM Eternal', 1, 100.00),
+('a2a2a2a2-bbbb-bbbb-bbbb-000000000002', '55555555-5555-5555-5555-555555555555', 'Stardew Valley', 1, 89.99);
 
--- Alice's Order: Keyboard
-((SELECT id FROM "order" WHERE total_amount = 89.99),
- (SELECT id FROM product WHERE title = 'Mechanical Keyboard'), 1, 89.99, NULL, NULL);
-
-INSERT INTO payment_record (order_id, method, amount, status, created_by, updated_by)
+INSERT INTO payment_record (order_id, method, amount, status)
 VALUES
-((SELECT id FROM "order" WHERE total_amount = 89.99), 'Card', 89.99, 'Success', NULL, NULL);
+('a2a2a2a2-bbbb-bbbb-bbbb-000000000002', 'Card', 89.99, 'Success');

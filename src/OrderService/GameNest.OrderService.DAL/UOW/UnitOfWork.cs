@@ -13,8 +13,6 @@ namespace GameNest.OrderService.DAL.UOW
         private bool _disposed = false;
         private readonly object _lockObject = new object();
 
-        public ICustomerRepository? Customers { get; private set; }
-        public IProductRepository? Products { get; private set; }
         public IOrderRepository? Orders { get; private set; }
         public IOrderItemRepository? OrderItems { get; private set; }
         public IPaymentRecordRepository? PaymentRecords { get; private set; }
@@ -31,8 +29,6 @@ namespace GameNest.OrderService.DAL.UOW
         {
             if (_connection == null) throw new InvalidOperationException("Connection is null");
 
-            Customers = new CustomerRepository(_connection, _transaction);
-            Products = new ProductRepositoryAdo(_connection, _transaction);
             Orders = new OrderRepository(_connection, _transaction);
             OrderItems = new OrderItemRepository(_connection, _transaction);
             PaymentRecords = new PaymentRecordRepository(_connection, _transaction);
@@ -97,7 +93,7 @@ namespace GameNest.OrderService.DAL.UOW
             lock (_lockObject)
             {
                 if (_transaction == null)
-                    return Task.CompletedTask; 
+                    return Task.CompletedTask;
 
                 try
                 {

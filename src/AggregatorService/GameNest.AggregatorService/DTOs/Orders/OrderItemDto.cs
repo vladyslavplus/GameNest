@@ -12,6 +12,8 @@ namespace GameNest.AggregatorService.DTOs.Orders
 
         [JsonPropertyName("product_Id")]
         public Guid ProductId { get; set; }
+        [JsonPropertyName("product_title")]
+        public string ProductTitle { get; set; } = null!;
 
         [JsonPropertyName("quantity")]
         public int Quantity { get; set; }

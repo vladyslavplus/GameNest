@@ -1,11 +1,23 @@
-﻿using GameNest.OrderService.BLL.DTOs.OrderItem;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GameNest.OrderService.BLL.DTOs.Order
 {
     public class OrderCreateDto
     {
-        public Guid Customer_Id { get; set; }
-        public List<OrderItemCreateDto> Items { get; set; } = new();
+        [Required]
+        [MaxLength(100)]
+        public string Country { get; set; } = null!;
+
+        [Required]
+        [MaxLength(100)]
+        public string City { get; set; } = null!;
+
+        [Required]
+        [MaxLength(200)]
+        public string Street { get; set; } = null!;
+
+        [Required]
+        [MaxLength(20)]
+        public string ZipCode { get; set; } = null!;
     }
 }

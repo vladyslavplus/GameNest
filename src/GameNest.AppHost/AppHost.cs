@@ -28,14 +28,6 @@ var rabbitmq = builder.AddRabbitMQ("rabbitmq",
     .WithManagementPlugin()
     .WithDataVolume();
 
-var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("orderservice-api")
-    .WithReference(ordersDb)
-    .WaitFor(ordersDb)
-    .WithHttpEndpoint(port: 5001, name: "orders-http")
-    .WithHttpsEndpoint(port: 7045, name: "order-https")
-    .WithHttpHealthCheck("/health")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
-
 var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("catalogservice-api")
     .WithReference(catalogDb)
     .WithReference(redis)
@@ -59,10 +51,27 @@ var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("r
 var cartService = builder.AddProject<Projects.GameNest_CartService_Api>("cartservice-api")
     .WithReference(redis)
     .WithReference(catalogService)
+    .WithReference(rabbitmq)
     .WaitFor(redis)
     .WaitFor(catalogService)
+    .WaitFor(rabbitmq)
     .WithHttpEndpoint(port: 5005, name: "cart-http")
     .WithHttpsEndpoint(port: 7050, name: "cart-https")
+    .WithHttpHealthCheck("/health")
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("JwtSettings__Key", jwtKey)
+    .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
+    .WithEnvironment("JwtSettings__Audience", jwtAudience);
+
+var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("orderservice-api")
+    .WithReference(ordersDb)
+    .WithReference(cartService)
+    .WithReference(rabbitmq)
+    .WaitFor(ordersDb)
+    .WaitFor(cartService)
+    .WaitFor(rabbitmq)
+    .WithHttpEndpoint(port: 5001, name: "orders-http")
+    .WithHttpsEndpoint(port: 7045, name: "order-https")
     .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithEnvironment("JwtSettings__Key", jwtKey)
