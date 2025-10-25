@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.Developers;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameNest.CatalogService.Api.Controllers
@@ -57,6 +58,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DeveloperDto>> CreateDeveloper([FromBody] DeveloperCreateDto dto, CancellationToken cancellationToken)
         {
             var createdDeveloper = await _developerService.CreateDeveloperAsync(dto, cancellationToken);
@@ -76,6 +78,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DeveloperDto>> UpdateDeveloper(Guid id, [FromBody] DeveloperUpdateDto updateDto, CancellationToken cancellationToken)
         {
             var updatedDeveloper = await _developerService.UpdateDeveloperAsync(id, updateDto, cancellationToken);
@@ -92,6 +95,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteDeveloper(Guid id, CancellationToken cancellationToken)
         {
             await _developerService.DeleteDeveloperAsync(id, cancellationToken);

@@ -35,7 +35,7 @@
     <ProjectReference Include="..\..\..\shared\GameNest.ServiceDefaults\GameNest.ServiceDefaults.csproj" />
     <ProjectReference Include="..\GameNest.CatalogService.BLL\GameNest.CatalogService.BLL.csproj" />
     <ProjectReference Include="..\GameNest.CatalogService.DAL\GameNest.CatalogService.DAL.csproj" />
-    <ProjectReference Include="..\GameNest.CatalogService.Grpc\GameNest.CatalogService.Grpc.csproj" />
+    <ProjectReference Include="..\GameNest.CatalogService.GrpcServer\GameNest.CatalogService.GrpcServer.csproj" />
   </ItemGroup>
 
 </Project>

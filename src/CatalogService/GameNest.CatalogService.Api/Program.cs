@@ -22,6 +22,7 @@ using GameNest.CatalogService.DAL.Repositories;
 using GameNest.CatalogService.DAL.Repositories.Interfaces;
 using GameNest.CatalogService.DAL.UOW;
 using GameNest.CatalogService.Domain.Entities;
+using GameNest.CatalogService.Grpc.MappingProfiles;
 using GameNest.CatalogService.Grpc.Services;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.ServiceDefaults.Health;
@@ -53,6 +54,12 @@ builder.Services.AddMemoryCache(options =>
 builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 builder.Services.AddSingleton<IHybridCacheService, HybridCacheService>();
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddAutoMapperWithLogging(
+    typeof(GameProfile).Assembly,
+    typeof(GameGrpcProfile).Assembly
+);
 
 builder.Services.AddRedisCache(builder.Configuration);
 
@@ -90,13 +97,6 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-builder.Services.AddSingleton(provider =>
-{
-    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-    var config = AutoMapperConfig.RegisterMappings(loggerFactory);
-    return config.CreateMapper();
-});
-
 builder.Services.AddFluentValidationSetup(typeof(GameCreateDtoValidator).Assembly);
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -130,7 +130,7 @@ builder.Services.AddCacheBackgroundJobs();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerWithAuth("GameNest Catalog API");
 
 builder.Services
     .AddHealthChecks()
@@ -156,20 +156,19 @@ using (var scope = app.Services.CreateScope())
     await preloader.PreloadAsync(CancellationToken.None);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
+app.UseSwaggerInDevelopment();
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseCorrelationId();
-app.MapHealthChecks("/health");
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
 app.MapGrpcService<GameGrpcServiceImpl>();
 app.MapGrpcServicesWithReflection();

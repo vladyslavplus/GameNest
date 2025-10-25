@@ -38,7 +38,10 @@ var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("c
     .WithHttpEndpoint(port: 5002, name: "catalog-http")
     .WithHttpsEndpoint(port: 7048, name: "catalog-https")
     .WithHttpHealthCheck("/health")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("JwtSettings__Key", jwtKey)
+    .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
+    .WithEnvironment("JwtSettings__Audience", jwtAudience);
 
 var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("reviewsservice-api")
     .WithReference(mongoDb)

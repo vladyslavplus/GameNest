@@ -4,9 +4,9 @@ using GameNest.Grpc.Games;
 
 namespace GameNest.CatalogService.Grpc.MappingProfiles
 {
-    public class GameProfile : Profile
+    public class GameGrpcProfile : Profile
     {
-        public GameProfile()
+        public GameGrpcProfile()
         {
             CreateMap<GameDto, Game>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()))

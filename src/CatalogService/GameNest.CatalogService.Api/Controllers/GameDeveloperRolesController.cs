@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.GameDeveloperRoles;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameNest.CatalogService.Api.Controllers
@@ -57,6 +58,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GameDeveloperRoleDto>> CreateRole([FromBody] GameDeveloperRoleCreateDto dto, CancellationToken cancellationToken)
         {
             var createdRole = await _gameDeveloperRoleService.CreateRoleAsync(dto, cancellationToken);
@@ -73,6 +75,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteRole(Guid id, CancellationToken cancellationToken)
         {
             await _gameDeveloperRoleService.DeleteRoleAsync(id, cancellationToken);

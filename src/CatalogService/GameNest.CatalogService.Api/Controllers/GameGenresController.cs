@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.GameGenres;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GameNest.CatalogService.Api.Controllers
@@ -59,6 +60,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GameGenreDto>> CreateGameGenre([FromBody] GameGenreCreateDto dto, CancellationToken cancellationToken)
         {
             var createdGameGenre = await _gameGenreService.CreateGameGenreAsync(dto, cancellationToken);
@@ -75,6 +77,7 @@ namespace GameNest.CatalogService.Api.Controllers
         [HttpDelete("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGameGenre(Guid id, CancellationToken cancellationToken)
         {
             await _gameGenreService.DeleteGameGenreAsync(id, cancellationToken);
