@@ -15,12 +15,7 @@ namespace GameNest.ReviewsService.Application.Commands.MediaCommands.CreateMedia
 
         public async Task<Media> Handle(CreateMediaCommand request, CancellationToken cancellationToken)
         {
-            var media = new Media(
-                request.GameId,
-                request.CustomerId,
-                request.Url
-            );
-
+            var media = new Media(request.GameId, request.CustomerId.ToString(), request.Url, request.CustomerId.ToString());
             await _mediaService.AddMediaAsync(media, cancellationToken);
             return media;
         }

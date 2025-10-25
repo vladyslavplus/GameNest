@@ -15,7 +15,12 @@ namespace GameNest.ReviewsService.Application.Commands.MediaCommands.DeleteMedia
 
         public async Task<Unit> Handle(DeleteMediaCommand request, CancellationToken cancellationToken)
         {
-            await _mediaService.DeleteMediaAsync(request.MediaId, cancellationToken);
+            await _mediaService.DeleteMediaAsync(
+                request.RequesterId,
+                request.MediaId,
+                request.IsAdmin,
+                cancellationToken
+            );
             return Unit.Value;
         }
     }

@@ -38,10 +38,10 @@ namespace GameNest.ReviewsService.Domain.Entities
             Url = url ?? throw new DomainException("Url is required");
         }
 
-        public void UpdateUrl(MediaUrl newUrl)
+        public void UpdateUrl(MediaUrl newUrl, string updatedBy)
         {
             Url = newUrl ?? throw new DomainException("Url is required");
-            SetUpdated("system");
+            SetUpdated(updatedBy ?? "system");
         }
     }
 }

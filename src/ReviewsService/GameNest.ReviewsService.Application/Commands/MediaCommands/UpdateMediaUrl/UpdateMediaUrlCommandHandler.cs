@@ -15,7 +15,12 @@ namespace GameNest.ReviewsService.Application.Commands.MediaCommands.UpdateMedia
 
         public async Task<Unit> Handle(UpdateMediaUrlCommand request, CancellationToken cancellationToken)
         {
-            await _mediaService.UpdateMediaUrlAsync(request.MediaId!, request.NewUrl, cancellationToken);
+            await _mediaService.UpdateMediaUrlAsync(
+                request.RequesterId,
+                request.MediaId!,
+                request.NewUrl,
+                cancellationToken
+            );
             return Unit.Value;
         }
     }

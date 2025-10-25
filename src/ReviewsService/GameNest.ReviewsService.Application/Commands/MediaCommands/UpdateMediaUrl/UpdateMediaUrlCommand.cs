@@ -6,8 +6,10 @@ namespace GameNest.ReviewsService.Application.Commands.MediaCommands.UpdateMedia
 {
     public record UpdateMediaUrlCommand : ICommand
     {
+        public MediaUrl NewUrl { get; init; } = default!;
         [JsonIgnore]
         public string? MediaId { get; init; }
-        public MediaUrl NewUrl { get; init; } = default!;
+        [JsonIgnore]
+        public Guid RequesterId { get; init; }
     }
 }

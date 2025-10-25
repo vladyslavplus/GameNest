@@ -22,7 +22,7 @@ namespace GameNest.ReviewsService.Application.Services
             return await _mediaRepository.GetMediaAsync(parameters, cancellationToken);
         }
 
-        public async Task<Media?> GetMediaByIdAsync(string mediaId, CancellationToken cancellationToken = default)
+        public async Task<Media> GetMediaByIdAsync(string mediaId, CancellationToken cancellationToken = default)
         {
             var media = await _mediaRepository.GetByIdAsync(mediaId, cancellationToken);
             if (media == null)
@@ -35,21 +35,35 @@ namespace GameNest.ReviewsService.Application.Services
             await _mediaRepository.AddAsync(media, cancellationToken);
         }
 
-        public async Task UpdateMediaUrlAsync(string mediaId, MediaUrl newUrl, CancellationToken cancellationToken = default)
+        public async Task UpdateMediaUrlAsync(Guid requesterId, string mediaId, MediaUrl newUrl, CancellationToken cancellationToken = default)
         {
-            var media = await _mediaRepository.GetByIdAsync(mediaId, cancellationToken);
-            if (media == null)
-                throw new NotFoundException($"Media with Id '{mediaId}' not found.");
+            var media = await GetMediaByIdAsync(mediaId, cancellationToken);
+            var requesterIdString = requesterId.ToString();
 
-            media.UpdateUrl(newUrl); 
+            if (media.CustomerId != requesterIdString)
+            {
+                throw new ForbiddenException("User is not authorized to update this media.");
+            }
+
+            media.UpdateUrl(newUrl, requesterIdString);
+
             await _mediaRepository.UpdateAsync(media, cancellationToken);
         }
 
-        public async Task DeleteMediaAsync(string mediaId, CancellationToken cancellationToken = default)
+        public async Task DeleteMediaAsync(Guid requesterId, string mediaId, bool isAdmin, CancellationToken cancellationToken = default)
         {
-            var media = await _mediaRepository.GetByIdAsync(mediaId, cancellationToken);
-            if (media == null)
-                throw new NotFoundException($"Media with Id '{mediaId}' not found.");
+            var media = await GetMediaByIdAsync(mediaId, cancellationToken);
+
+            if (isAdmin)
+            {
+                await _mediaRepository.DeleteAsync(mediaId, cancellationToken);
+                return;
+            }
+
+            if (media.CustomerId != requesterId.ToString())
+            {
+                throw new ForbiddenException("User is not authorized to delete this media.");
+            }
 
             await _mediaRepository.DeleteAsync(mediaId, cancellationToken);
         }
