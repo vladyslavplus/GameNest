@@ -15,7 +15,7 @@ namespace GameNest.ReviewsService.Application.Commands.CommentCommands.DeleteRep
 
         public async Task<Unit> Handle(DeleteReplyCommand request, CancellationToken cancellationToken)
         {
-            await _commentService.DeleteReplyFromCommentAsync(request.CommentId, request.ReplyId, cancellationToken);
+            await _commentService.DeleteReplyFromCommentAsync(request.RequesterId, request.CommentId, request.ReplyId, request.IsAdmin, cancellationToken);
             return Unit.Value;
         }
     }

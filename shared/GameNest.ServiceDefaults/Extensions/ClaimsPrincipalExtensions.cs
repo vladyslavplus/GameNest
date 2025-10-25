@@ -24,5 +24,11 @@ namespace GameNest.ServiceDefaults.Extensions
         {
             return user.Identity?.Name;
         }
+
+        public static bool IsInRole(this ClaimsPrincipal user, string roleName)
+        {
+            return user.HasClaim(ClaimTypes.Role, roleName) ||
+                   user.HasClaim("role", roleName);
+        }
     }
 }

@@ -25,9 +25,9 @@ namespace GameNest.ReviewsService.Domain.Common
             CreatedBy = createdBy ?? throw new DomainException("CreatedBy is required");
         }
 
-        public void SetUpdated(string updatedBy)
+        public void SetUpdated(string updatedBy, DateTime? updatedAt = null)
         {
-            UpdatedAt = DateTime.UtcNow;
+            UpdatedAt = updatedAt ?? DateTime.UtcNow;
             UpdatedBy = updatedBy ?? throw new DomainException("UpdatedBy is required");
         }
     }

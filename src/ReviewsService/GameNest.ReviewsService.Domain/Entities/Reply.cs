@@ -11,7 +11,7 @@ namespace GameNest.ReviewsService.Domain.Entities
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
-        private Reply() { } 
+        private Reply() { }
 
         public Reply(string customerId, ReviewText text)
         {
@@ -19,7 +19,7 @@ namespace GameNest.ReviewsService.Domain.Entities
                 throw new DomainException("CustomerId is required");
 
             CustomerId = customerId;
-            Text = text ?? throw new DomainException("Text is required"); 
+            Text = text ?? throw new DomainException("Text is required");
             CreatedAt = DateTime.UtcNow;
         }
 

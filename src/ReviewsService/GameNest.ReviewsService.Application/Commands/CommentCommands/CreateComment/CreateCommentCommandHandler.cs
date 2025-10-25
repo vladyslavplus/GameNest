@@ -15,7 +15,7 @@ namespace GameNest.ReviewsService.Application.Commands.CommentCommands.CreateCom
 
         public async Task<Comment> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
         {
-            var comment = new Comment(request.ReviewId, request.CustomerId, request.Text);
+            var comment = new Comment(request.ReviewId, request.CustomerId.ToString(), request.Text, request.CustomerId.ToString());
             await _commentService.AddCommentAsync(comment, cancellationToken);
             return comment;
         }

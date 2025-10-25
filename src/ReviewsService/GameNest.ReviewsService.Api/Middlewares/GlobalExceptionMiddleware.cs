@@ -45,6 +45,12 @@ namespace GameNest.ReviewsService.Api.Middlewares
 
             switch (exception)
             {
+                case ForbiddenException:
+                    problemDetails.Status = StatusCodes.Status403Forbidden;
+                    problemDetails.Title = "Forbidden";
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    break;
+
                 case ValidationException ve:
                     problemDetails.Status = StatusCodes.Status400BadRequest;
                     problemDetails.Title = "Validation Error";
@@ -59,7 +65,6 @@ namespace GameNest.ReviewsService.Api.Middlewares
                     problemDetails.Detail = de.Message;
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     break;
-
 
                 case NotFoundException:
                     problemDetails.Status = StatusCodes.Status404NotFound;

@@ -1,13 +1,13 @@
 ﻿using GameNest.ReviewsService.Application.Interfaces.Commands;
 using GameNest.ReviewsService.Domain.Entities;
 using GameNest.ReviewsService.Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 namespace GameNest.ReviewsService.Application.Commands.CommentCommands.CreateComment
 {
-    public class CreateCommentCommand : ICommand<Comment>
+    public record CreateCommentCommand(string ReviewId, ReviewText Text) : ICommand<Comment>
     {
-        public string ReviewId { get; init; } = default!;
-        public string CustomerId { get; init; } = default!;
-        public ReviewText Text { get; init; } = default!;
+        [JsonIgnore]
+        public Guid CustomerId { get; init; }
     }
 }

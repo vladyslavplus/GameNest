@@ -6,6 +6,7 @@ using GameNest.ReviewsService.Application.Services;
 using GameNest.ReviewsService.Application.Validators.Comments;
 using GameNest.ReviewsService.Domain.Interfaces.Repositories;
 using GameNest.ReviewsService.Domain.Interfaces.Services;
+using GameNest.ReviewsService.Grpc.MappingProfiles;
 using GameNest.ReviewsService.Grpc.Services;
 using GameNest.ReviewsService.Infrastructure.Mongo.Configuration;
 using GameNest.ReviewsService.Infrastructure.Mongo.Context;
@@ -62,6 +63,11 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<IIndexCreationService, MongoIndexCreationService>();
 builder.Services.AddSingleton<IDataSeeder, DatabaseSeeder>();
 
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddAutoMapperWithLogging(
+    typeof(ReviewGrpcProfile).Assembly
+);
+
 builder.Services.AddScoped<IUnitOfWork>(provider =>
 {
     var context = provider.GetRequiredService<MongoDbContext>();
@@ -89,9 +95,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(GetCommentsQueryValidator).Ass
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddSwaggerWithAuth("GameNest Reviews API");
 
 builder.Services.AddHealthChecks()
     .AddMongoHealthCheck(
@@ -112,23 +116,21 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedAsync();
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
+app.UseSwaggerInDevelopment();
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseCorrelationId();
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
-
 app.MapGrpcService<ReviewGrpcServiceImpl>();
 app.MapGrpcServicesWithReflection();
 
-app.MapHealthChecks("/health");
 await app.RunAsync();

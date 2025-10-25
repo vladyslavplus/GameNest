@@ -7,7 +7,7 @@ namespace GameNest.ReviewsService.Application.Validators.Comments
     {
         public AddReplyCommandValidator()
         {
-            RuleFor(x => x.Reply)
+            RuleFor(x => x.Text)
                 .NotNull();
         }
     }

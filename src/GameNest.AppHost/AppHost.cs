@@ -49,7 +49,10 @@ var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("r
     .WithHttpEndpoint(port: 5003, name: "reviews-http")
     .WithHttpsEndpoint(port: 7047, name: "reviews-https")
     .WithHttpHealthCheck("/health")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
+    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
+    .WithEnvironment("JwtSettings__Key", jwtKey)
+    .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
+    .WithEnvironment("JwtSettings__Audience", jwtAudience);
 
 var cartService = builder.AddProject<Projects.GameNest_CartService_Api>("cartservice-api")
     .WithReference(redis)

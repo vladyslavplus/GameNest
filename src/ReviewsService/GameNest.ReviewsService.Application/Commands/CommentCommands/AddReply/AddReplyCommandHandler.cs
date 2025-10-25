@@ -15,7 +15,7 @@ namespace GameNest.ReviewsService.Application.Commands.CommentCommands.AddReply
 
         public async Task<Unit> Handle(AddReplyCommand request, CancellationToken cancellationToken)
         {
-            await _commentService.AddReplyToCommentAsync(request.CommentId!, request.Reply, cancellationToken);
+            await _commentService.AddReplyToCommentAsync(request.RequesterId, request.CommentId!, request.Text, cancellationToken);
             return Unit.Value;
         }
     }

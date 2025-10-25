@@ -33,17 +33,17 @@ namespace GameNest.ReviewsService.Domain.Entities
                 throw new DomainException("ReviewId is required");
             if (string.IsNullOrWhiteSpace(customerId))
                 throw new DomainException("CustomerId is required");
-                
+
             ReviewId = reviewId;
             CustomerId = customerId;
             Text = text ?? throw new DomainException("Text is required");
         }
 
         public void AddReply(Reply reply) => Replies.Add(reply);
-        public void UpdateText(ReviewText newText)
+        public void UpdateText(ReviewText newText, string updatedBy)
         {
             Text = newText ?? throw new DomainException("Text is required");
-            SetUpdated("system");
+            SetUpdated(updatedBy ?? "system");
         }
     }
 }

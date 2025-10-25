@@ -40,7 +40,7 @@ namespace GameNest.ReviewsService.Infrastructure.Repositories
                 if (lastItem != null)
                 {
                     filter &= Builders<Comment>.Filter.Or(
-                        Builders<Comment>.Filter.Lt(c => c.CreatedAt, lastItem.CreatedAt), 
+                        Builders<Comment>.Filter.Lt(c => c.CreatedAt, lastItem.CreatedAt),
                         Builders<Comment>.Filter.And(
                             Builders<Comment>.Filter.Eq(c => c.CreatedAt, lastItem.CreatedAt),
                             Builders<Comment>.Filter.Gt(c => c.Id, lastItem.Id)
@@ -71,7 +71,7 @@ namespace GameNest.ReviewsService.Infrastructure.Repositories
                 Builders<Comment>.Filter.ElemMatch(c => c.Replies, r => r.Id == reply.Id)
             );
 
-            var update = Builders<Comment>.Update.Set("Replies.$", reply); 
+            var update = Builders<Comment>.Update.Set("Replies.$", reply);
             await _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
         }
 

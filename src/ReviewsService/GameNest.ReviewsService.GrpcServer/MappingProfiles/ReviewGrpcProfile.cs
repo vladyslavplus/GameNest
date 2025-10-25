@@ -5,9 +5,9 @@ using DomainReply = GameNest.ReviewsService.Domain.Entities.Reply;
 
 namespace GameNest.ReviewsService.Grpc.MappingProfiles
 {
-    public class ReviewMappingProfile : Profile
+    public class ReviewGrpcProfile : Profile
     {
-        public ReviewMappingProfile()
+        public ReviewGrpcProfile()
         {
             CreateMap<DomainReview, Review>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
