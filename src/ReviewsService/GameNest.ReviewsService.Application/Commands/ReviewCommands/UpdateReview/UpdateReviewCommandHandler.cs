@@ -19,7 +19,7 @@ namespace GameNest.ReviewsService.Application.Commands.ReviewCommands.UpdateRevi
                 request.ReviewId!,
                 request.NewText,
                 request.NewRating,
-                request.RequesterId.ToString(),
+                request.RequesterId,
                 cancellationToken
             );
 

@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\shared\GameNest.GrpcClients\GameNest.GrpcClients.csproj" />
     <ProjectReference Include="..\GameNest.ReviewsService.Domain\GameNest.ReviewsService.Domain.csproj" />
   </ItemGroup>
 

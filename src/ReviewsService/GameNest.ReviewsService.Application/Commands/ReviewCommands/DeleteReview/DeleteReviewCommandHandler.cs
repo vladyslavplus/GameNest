@@ -17,7 +17,7 @@ namespace GameNest.ReviewsService.Application.Commands.ReviewCommands.DeleteRevi
         {
             await _reviewService.DeleteReviewAsync(
                 request.ReviewId,
-                request.RequesterId.ToString(),
+                request.RequesterId,
                 request.IsAdmin,
                 cancellationToken
             );

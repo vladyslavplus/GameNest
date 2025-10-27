@@ -3,7 +3,7 @@ using GameNest.CartService.BLL.DTOs;
 using GameNest.CartService.BLL.Interfaces;
 using GameNest.CartService.DAL.Interfaces;
 using GameNest.CartService.Domain.Entities;
-using GameNest.CartService.GrpcClients.Clients.Interfaces;
+using GameNest.GrpcClients.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace GameNest.CartService.BLL.Services

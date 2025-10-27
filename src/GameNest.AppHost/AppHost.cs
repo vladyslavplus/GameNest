@@ -45,14 +45,17 @@ var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("c
 
 var reviewsService = builder.AddProject<Projects.GameNest_ReviewsService_Api>("reviewsservice-api")
     .WithReference(mongoDb)
+    .WithReference(catalogService)
     .WaitFor(mongoDb)
+    .WaitFor(catalogService)
     .WithHttpEndpoint(port: 5003, name: "reviews-http")
     .WithHttpsEndpoint(port: 7047, name: "reviews-https")
     .WithHttpHealthCheck("/health")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithEnvironment("JwtSettings__Key", jwtKey)
     .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
-    .WithEnvironment("JwtSettings__Audience", jwtAudience);
+    .WithEnvironment("JwtSettings__Audience", jwtAudience)
+    .WithEnvironment("Grpc__CatalogService", "https://catalogservice-api");
 
 var cartService = builder.AddProject<Projects.GameNest_CartService_Api>("cartservice-api")
     .WithReference(redis)
@@ -67,7 +70,8 @@ var cartService = builder.AddProject<Projects.GameNest_CartService_Api>("cartser
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName)
     .WithEnvironment("JwtSettings__Key", jwtKey)
     .WithEnvironment("JwtSettings__Issuer", jwtIssuer)
-    .WithEnvironment("JwtSettings__Audience", jwtAudience);
+    .WithEnvironment("JwtSettings__Audience", jwtAudience)
+    .WithEnvironment("Grpc__CatalogService", "https://catalogservice-api");
 
 var orderservice = builder.AddProject<Projects.GameNest_OrderService_Api>("orderservice-api")
     .WithReference(ordersDb)

@@ -10,7 +10,7 @@ namespace GameNest.ReviewsService.Domain.Interfaces.Services
         Task<PagedList<Review>> GetReviewsAsync(ReviewParameters parameters, CancellationToken cancellationToken = default);
         Task<Review?> GetReviewByIdAsync(string reviewId, CancellationToken cancellationToken = default);
         Task AddReviewAsync(Review review, CancellationToken cancellationToken = default);
-        Task UpdateReviewAsync(string reviewId, ReviewText? newText = null, Rating? newRating = null, string? updatedBy = null, CancellationToken cancellationToken = default);
-        Task DeleteReviewAsync(string reviewId, string requesterId, bool isAdmin = false, CancellationToken cancellationToken = default);
+        Task UpdateReviewAsync(string reviewId, ReviewText? newText = null, Rating? newRating = null, Guid? requesterId = null, CancellationToken cancellationToken = default);
+        Task DeleteReviewAsync(string reviewId, Guid requesterId, bool isAdmin = false, CancellationToken cancellationToken = default);
     }
 }

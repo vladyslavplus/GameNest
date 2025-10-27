@@ -43,6 +43,7 @@
 
 		<PackageReference Include="MassTransit" Version="8.5.4" />
 		<PackageReference Include="MassTransit.RabbitMQ" Version="8.5.4" />
+		<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="8.2.2" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
 

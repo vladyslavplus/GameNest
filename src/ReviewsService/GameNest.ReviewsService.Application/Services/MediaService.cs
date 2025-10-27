@@ -1,20 +1,26 @@
-﻿using GameNest.ReviewsService.Domain.Common.Helpers;
+﻿using GameNest.GrpcClients.Interfaces;
+using GameNest.ReviewsService.Domain.Common.Helpers;
 using GameNest.ReviewsService.Domain.Entities;
 using GameNest.ReviewsService.Domain.Entities.Parameters;
 using GameNest.ReviewsService.Domain.Exceptions;
 using GameNest.ReviewsService.Domain.Interfaces.Repositories;
 using GameNest.ReviewsService.Domain.Interfaces.Services;
 using GameNest.ReviewsService.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 
 namespace GameNest.ReviewsService.Application.Services
 {
     public class MediaService : IMediaService
     {
         private readonly IMediaRepository _mediaRepository;
+        private readonly IGameGrpcClient _gameClient;
+        private readonly ILogger<MediaService> _logger;
 
-        public MediaService(IMediaRepository mediaRepository)
+        public MediaService(IMediaRepository mediaRepository, IGameGrpcClient gameClient, ILogger<MediaService> logger)
         {
             _mediaRepository = mediaRepository;
+            _gameClient = gameClient;
+            _logger = logger;
         }
 
         public async Task<PagedList<Media>> GetMediaAsync(MediaParameters parameters, CancellationToken cancellationToken = default)
@@ -32,6 +38,13 @@ namespace GameNest.ReviewsService.Application.Services
 
         public async Task AddMediaAsync(Media media, CancellationToken cancellationToken = default)
         {
+            var game = await _gameClient.GetGameByIdAsync(Guid.Parse(media.GameId), cancellationToken);
+            if (game == null)
+            {
+                _logger.LogWarning("Attempted to add media for non-existent game {GameId}.", media.GameId);
+                throw new NotFoundException($"Game with Id '{media.GameId}' not found in CatalogService.");
+            }
+
             await _mediaRepository.AddAsync(media, cancellationToken);
         }
 

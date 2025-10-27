@@ -1,4 +1,5 @@
 using FluentValidation;
+using GameNest.GrpcClients.Extensions;
 using GameNest.ReviewsService.Api.Middlewares;
 using GameNest.ReviewsService.Application.Behaviors;
 using GameNest.ReviewsService.Application.Commands.CommentCommands.AddReply;
@@ -23,6 +24,7 @@ builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddGrpcWithObservability(builder.Environment);
+builder.Services.AddServiceDiscovery();
 
 var aspireConn = builder.Configuration.GetConnectionString("gamenest-reviewservice-db")
                 ?? builder.Configuration.GetConnectionString("mongodb");
@@ -92,6 +94,8 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddValidatorsFromAssembly(typeof(GetCommentsQueryValidator).Assembly);
+
+builder.Services.AddGameGrpcClient(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

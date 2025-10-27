@@ -11,10 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\shared\GameNest.GrpcClients\GameNest.GrpcClients.csproj" />
     <ProjectReference Include="..\..\..\shared\GameNest.Shared\GameNest.Shared.csproj" />
     <ProjectReference Include="..\GameNest.CartService.DAL\GameNest.CartService.DAL.csproj" />
     <ProjectReference Include="..\GameNest.CartService.Domain\GameNest.CartService.Domain.csproj" />
-    <ProjectReference Include="..\GameNest.CartService.GrpcClients\GameNest.CartService.GrpcClients.csproj" />
   </ItemGroup>
 
 </Project>

@@ -5,11 +5,9 @@ using GameNest.CartService.BLL.MappingProfiles;
 using GameNest.CartService.BLL.Services;
 using GameNest.CartService.DAL.Interfaces;
 using GameNest.CartService.DAL.Repositories;
-using GameNest.CartService.GrpcClients.Clients;
-using GameNest.CartService.GrpcClients.Clients.Interfaces;
 using GameNest.CartService.GrpcServer.MappingProfiles;
 using GameNest.CartService.GrpcServer.Services;
-using GameNest.Grpc.Games;
+using GameNest.GrpcClients.Extensions;
 using GameNest.ServiceDefaults.Extensions;
 using GameNest.ServiceDefaults.Redis;
 using MassTransit;
@@ -46,19 +44,7 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-builder.Services.AddGrpcClient<GameGrpcService.GameGrpcServiceClient>(options =>
-{
-    options.Address = new Uri("https://catalogservice-api");
-})
-.ConfigureChannel(channelOptions =>
-{
-    channelOptions.MaxReceiveMessageSize = 5 * 1024 * 1024;
-    channelOptions.MaxSendMessageSize = 5 * 1024 * 1024;
-})
-.AddServiceDiscovery()
-.AddGrpcResilienceHandler(ResilienceProfile.Standard);
-
-builder.Services.AddScoped<IGameGrpcClient, GameGrpcClient>();
+builder.Services.AddGameGrpcClient(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
