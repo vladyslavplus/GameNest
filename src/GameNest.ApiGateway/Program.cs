@@ -7,8 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMemoryCache();
 builder.AddServiceDefaults();
 builder.AddOpenTelemetryTracing();
-
+builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddServiceDiscovery();
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
@@ -21,14 +23,13 @@ builder.Services.AddReverseProxy()
             if (!string.IsNullOrEmpty(correlationId))
             {
                 transformContext.ProxyRequest.Headers.TryAddWithoutValidation(
-                    "X-Correlation-Id",
-                    correlationId);
+                    "X-Correlation-Id", correlationId);
             }
+
             await ValueTask.CompletedTask;
         });
     });
 
-builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
@@ -39,6 +40,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseGatewayPipeline();
+app.UseCorrelationId();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapReverseProxy();
 app.MapHealthChecks("/health");
 await app.RunAsync();
