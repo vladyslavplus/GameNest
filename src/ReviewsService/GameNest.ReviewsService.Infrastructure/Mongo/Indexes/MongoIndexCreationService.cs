@@ -46,8 +46,8 @@ namespace GameNest.ReviewsService.Infrastructure.Mongo.Indexes
             await _context.Comments.Indexes.CreateOneAsync(
                 new CreateIndexModel<Comment>(
                     Builders<Comment>.IndexKeys
-                        .Ascending(c => c.ReviewId)   
-                        .Descending(c => c.CreatedAt) 
+                        .Ascending(c => c.ReviewId)
+                        .Descending(c => c.CreatedAt)
                         .Ascending(c => c.Id)
                 ),
                 cancellationToken: cancellationToken

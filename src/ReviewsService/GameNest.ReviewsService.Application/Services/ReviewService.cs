@@ -35,52 +35,40 @@ namespace GameNest.ReviewsService.Application.Services
             await _reviewRepository.AddAsync(review, cancellationToken);
         }
 
-        public async Task UpdateReviewAsync(string reviewId, ReviewText? newText = null, Rating? newRating = null, CancellationToken cancellationToken = default)
+        public async Task UpdateReviewAsync(string reviewId, ReviewText? newText = null, Rating? newRating = null, string? requesterId = null, CancellationToken cancellationToken = default)
         {
             var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken);
             if (review == null)
                 throw new NotFoundException($"Review with Id '{reviewId}' not found.");
+
+            if (!string.Equals(review.CustomerId, requesterId, StringComparison.OrdinalIgnoreCase))
+                throw new ForbiddenException("User is not authorized to update this review.");
 
             if (newText != null)
-                review.UpdateText(newText);
+                review.UpdateText(newText, requesterId ?? "system");
 
             if (newRating != null)
-                review.UpdateRating(newRating);
+                review.UpdateRating(newRating, requesterId ?? "system");
 
             await _reviewRepository.UpdateAsync(review, cancellationToken);
         }
 
-        public async Task AddReplyToReviewAsync(string reviewId, Reply reply, CancellationToken cancellationToken = default)
+        public async Task DeleteReviewAsync(string reviewId, string requesterId, bool isAdmin = false, CancellationToken cancellationToken = default)
         {
             var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken);
             if (review == null)
                 throw new NotFoundException($"Review with Id '{reviewId}' not found.");
 
-            review.AddReply(reply);
-            await _reviewRepository.UpdateAsync(review, cancellationToken);
-        }
+            if (isAdmin)
+            {
+                await _reviewRepository.DeleteAsync(reviewId, cancellationToken);
+                return;
+            }
 
-        public async Task DeleteReviewAsync(string reviewId, CancellationToken cancellationToken = default)
-        {
-            var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken);
-            if (review == null)
-                throw new NotFoundException($"Review with Id '{reviewId}' not found.");
+            if (!string.Equals(review.CustomerId, requesterId, StringComparison.OrdinalIgnoreCase))
+                throw new ForbiddenException("User is not authorized to delete this review.");
 
             await _reviewRepository.DeleteAsync(reviewId, cancellationToken);
-        }
-
-        public async Task DeleteReplyFromReviewAsync(string reviewId, string replyId, CancellationToken cancellationToken = default)
-        {
-            var review = await _reviewRepository.GetByIdAsync(reviewId, cancellationToken);
-            if (review == null)
-                throw new NotFoundException($"Review with Id '{reviewId}' not found.");
-
-            var reply = review.Replies.FirstOrDefault(r => r.Id == replyId);
-            if (reply == null)
-                throw new NotFoundException($"Reply with Id '{replyId}' not found in review '{reviewId}'.");
-
-            review.Replies.Remove(reply);
-            await _reviewRepository.UpdateAsync(review, cancellationToken);
         }
     }
 }

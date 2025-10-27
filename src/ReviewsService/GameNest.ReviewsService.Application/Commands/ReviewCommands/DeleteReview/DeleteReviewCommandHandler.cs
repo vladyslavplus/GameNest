@@ -15,7 +15,13 @@ namespace GameNest.ReviewsService.Application.Commands.ReviewCommands.DeleteRevi
 
         public async Task<Unit> Handle(DeleteReviewCommand request, CancellationToken cancellationToken)
         {
-            await _reviewService.DeleteReviewAsync(request.ReviewId, cancellationToken);
+            await _reviewService.DeleteReviewAsync(
+                request.ReviewId,
+                request.RequesterId.ToString(),
+                request.IsAdmin,
+                cancellationToken
+            );
+
             return Unit.Value;
         }
     }

@@ -10,9 +10,8 @@ namespace GameNest.ReviewsService.Domain.Entities
         public string CustomerId { get; private set; } = default!;
         public Rating Rating { get; private set; } = default!;
         public ReviewText Text { get; private set; } = default!;
-        public List<Reply> Replies { get; private set; } = new();
 
-        private Review() : base(null!) { } 
+        private Review() : base(null!) { }
 
         public Review(string gameId, string customerId, Rating rating, ReviewText text, string createdBy)
             : base(createdBy)
@@ -28,20 +27,16 @@ namespace GameNest.ReviewsService.Domain.Entities
             Text = text ?? throw new DomainException("Text is required");
         }
 
-        public void AddReply(Reply reply)
-        {
-            if (reply is null) throw new DomainException("Reply cannot be null");
-            Replies.Add(reply);
-        }
-        public void UpdateRating(Rating rating)
+        public void UpdateRating(Rating rating, string updatedBy)
         {
             Rating = rating ?? throw new DomainException("Rating is required");
-            SetUpdated("system");
+            SetUpdated(updatedBy ?? "system");
         }
-        public void UpdateText(ReviewText text)
+
+        public void UpdateText(ReviewText text, string updatedBy)
         {
             Text = text ?? throw new DomainException("Text is required");
-            SetUpdated("system");
+            SetUpdated(updatedBy ?? "system");
         }
     }
 }

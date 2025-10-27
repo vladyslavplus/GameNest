@@ -15,7 +15,14 @@ namespace GameNest.ReviewsService.Application.Commands.ReviewCommands.UpdateRevi
 
         public async Task<Unit> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
         {
-            await _reviewService.UpdateReviewAsync(request.ReviewId!, request.NewText, request.NewRating, cancellationToken);
+            await _reviewService.UpdateReviewAsync(
+                request.ReviewId!,
+                request.NewText,
+                request.NewRating,
+                request.RequesterId.ToString(),
+                cancellationToken
+            );
+
             return Unit.Value;
         }
     }

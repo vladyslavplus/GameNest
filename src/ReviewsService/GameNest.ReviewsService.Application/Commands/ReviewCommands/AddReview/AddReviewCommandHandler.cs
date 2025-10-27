@@ -15,7 +15,14 @@ namespace GameNest.ReviewsService.Application.Commands.ReviewCommands.AddReview
 
         public async Task<Review> Handle(AddReviewCommand request, CancellationToken cancellationToken)
         {
-            var review = new Review(request.GameId, request.CustomerId, request.Rating, request.Text, null!);
+            var review = new Review(
+                gameId: request.GameId,
+                customerId: request.CustomerId.ToString(),
+                rating: request.Rating,
+                text: request.Text,
+                createdBy: request.CustomerId.ToString()
+            );
+
             await _reviewService.AddReviewAsync(review, cancellationToken);
             return review;
         }

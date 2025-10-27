@@ -200,12 +200,8 @@ namespace GameNest.AggregatorService.Services
                     WordCount = review.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length ?? 0,
                     IsLongReview = (review.Text?.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length ?? 0) > 50
                 },
-                Replies = review.Replies.Select(r => new ReplyDto
-                {
-                    Id = r.Id,
-                    CustomerId = r.CustomerId,
-                    Text = r.Text
-                }).ToList()
+
+                Replies = new List<ReplyDto>()
             };
         }
 

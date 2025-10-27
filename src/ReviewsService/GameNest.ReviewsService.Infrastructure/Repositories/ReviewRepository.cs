@@ -36,28 +36,5 @@ namespace GameNest.ReviewsService.Infrastructure.Repositories
             return await PagedList<Review>
                 .ToPagedListAsync(findFluent, parameters.PageNumber, parameters.PageSize, cancellationToken);
         }
-
-        public async Task AddReplyAsync(string reviewId, Reply reply, CancellationToken cancellationToken = default)
-        {
-            var update = Builders<Review>.Update.Push(r => r.Replies, reply);
-            await _collection.UpdateOneAsync(r => r.Id == reviewId, update, cancellationToken: cancellationToken);
-        }
-
-        public async Task UpdateReplyAsync(string reviewId, Reply reply, CancellationToken cancellationToken = default)
-        {
-            var filter = Builders<Review>.Filter.And(
-                Builders<Review>.Filter.Eq(r => r.Id, reviewId),
-                Builders<Review>.Filter.ElemMatch(r => r.Replies, rep => rep.Id == reply.Id)
-            );
-
-            var update = Builders<Review>.Update.Set(r => r.Replies[-1], reply);
-            await _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
-        }
-
-        public async Task DeleteReplyAsync(string reviewId, string replyId, CancellationToken cancellationToken = default)
-        {
-            var update = Builders<Review>.Update.PullFilter(r => r.Replies, rep => rep.Id == replyId);
-            await _collection.UpdateOneAsync(r => r.Id == reviewId, update, cancellationToken: cancellationToken);
-        }
     }
 }

@@ -10,5 +10,7 @@ namespace GameNest.ReviewsService.Application.Commands.ReviewCommands.UpdateRevi
         public string? ReviewId { get; init; }
         public ReviewText? NewText { get; init; }
         public Rating? NewRating { get; init; }
+        [JsonIgnore]
+        public Guid RequesterId { get; init; }
     }
 }
