@@ -1,5 +1,6 @@
 ﻿using GameNest.IdentityService.BLL.DTOs;
 using GameNest.IdentityService.BLL.Interfaces;
+using GameNest.ServiceDefaults.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -63,6 +64,27 @@ namespace GameNest.IdentityService.Api.Controllers
         }
 
         /// <summary>
+        /// Get info about the currently authenticated user.
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+        public async Task<ActionResult<UserDto>> GetCurrentUser(CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            var user = await _userService.GetUserByIdAsync(userId, cancellationToken);
+
+            if (user == null)
+            {
+                _logger.LogWarning("User {UserId} not found while requesting /me endpoint.", userId);
+                return NotFound(new { message = "User not found." });
+            }
+
+            _logger.LogInformation("User {UserId} accessed /me endpoint.", userId);
+            return Ok(user);
+        }
+
+        /// <summary>
         /// Refresh the access token using a valid refresh token.
         /// </summary>
         [HttpPost("refresh")]
@@ -94,6 +116,21 @@ namespace GameNest.IdentityService.Api.Controllers
                 return BadRequest(new { message = "Invalid or already revoked token." });
 
             _logger.LogInformation("Successfully revoked refresh token for user {User}", User.Identity?.Name);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Log out current user (revoke all active refresh tokens).
+        /// </summary>
+        [HttpPost("logout")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+        {
+            var userId = User.GetUserId();
+            await _tokenService.RevokeAllUserTokensAsync(userId, cancellationToken);
+            _logger.LogInformation("User {UserId} logged out successfully (all tokens revoked).", userId);
+
             return NoContent();
         }
     }

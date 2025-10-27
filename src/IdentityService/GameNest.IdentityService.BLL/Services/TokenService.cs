@@ -85,6 +85,27 @@ namespace GameNest.IdentityService.BLL.Services
             return true;
         }
 
+        public async Task RevokeAllUserTokensAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            var tokens = await _refreshTokenRepository.GetUserTokensAsync(userId, cancellationToken);
+            if (!tokens.Any())
+            {
+                _logger.LogInformation("No refresh tokens found for user {UserId}", userId);
+                return;
+            }
+
+            foreach (var token in tokens)
+            {
+                if (!token.IsRevoked)
+                {
+                    token.IsRevoked = true;
+                    await _refreshTokenRepository.UpdateAsync(token, cancellationToken);
+                }
+            }
+
+            _logger.LogInformation("Revoked all active refresh tokens for user {UserId}", userId);
+        }
+
         private async Task<string> GenerateAccessTokenAsync(ApplicationUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
