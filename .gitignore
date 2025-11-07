@@ -114,3 +114,11 @@ TestResults/
 # ===========================
 .dotnet/
 .global.json
+
+# ===========================
+# Duende IdentityServer keys
+# ===========================
+tempkey.jwk
+signingkey.jwk
+rsakey.jwk
+keys/

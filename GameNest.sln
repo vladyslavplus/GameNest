@@ -83,6 +83,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.ReviewsService.Grp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.GrpcClients", "shared\GameNest.GrpcClients\GameNest.GrpcClients.csproj", "{C3826481-F16B-4727-AE1A-13D1FF76D7EE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IdentityServerService", "IdentityServerService", "{867C7379-0E6C-4A88-B9D9-D22B5F0A2B36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.IdentityServerService.Api", "src\IdentityServerService\GameNest.IdentityServerService.Api\GameNest.IdentityServerService.Api.csproj", "{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -217,6 +221,10 @@ Global
 		{C3826481-F16B-4727-AE1A-13D1FF76D7EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3826481-F16B-4727-AE1A-13D1FF76D7EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3826481-F16B-4727-AE1A-13D1FF76D7EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -260,6 +268,8 @@ Global
 		{09BACD98-3DE8-1AB2-D536-4DAA648FD084} = {04DA8391-0D7F-4D12-9AAF-E8FF2918CF4D}
 		{B53EBA81-1E1C-A4C1-D3E5-3F277FD04222} = {B5035B74-F221-4003-96AD-0BD2E9B4907D}
 		{C3826481-F16B-4727-AE1A-13D1FF76D7EE} = {92C0D404-BB24-4D8D-9141-B3F2F378A11E}
+		{867C7379-0E6C-4A88-B9D9-D22B5F0A2B36} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828} = {867C7379-0E6C-4A88-B9D9-D22B5F0A2B36}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BFE9F865-6438-4B5B-A53A-E7ABF9EDEA19}

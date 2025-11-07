@@ -23,6 +23,7 @@
     <ProjectReference Include="..\CartService\GameNest.CartService.Api\GameNest.CartService.Api.csproj" />
     <ProjectReference Include="..\CatalogService\GameNest.CatalogService.Api\GameNest.CatalogService.Api.csproj" />
     <ProjectReference Include="..\GameNest.ApiGateway\GameNest.ApiGateway.csproj" />
+    <ProjectReference Include="..\IdentityServerService\GameNest.IdentityServerService.Api\GameNest.IdentityServerService.Api.csproj" />
     <ProjectReference Include="..\IdentityService\GameNest.IdentityService.Api\GameNest.IdentityService.Api.csproj" />
     <ProjectReference Include="..\OrderService\GameNest.OrderService.Api\GameNest.OrderService.Api.csproj" />
     <ProjectReference Include="..\ReviewsService\GameNest.ReviewsService.Api\GameNest.ReviewsService.Api.csproj" />

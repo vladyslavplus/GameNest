@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Text;
 
 namespace GameNest.ServiceDefaults.Extensions
 {
@@ -13,39 +12,83 @@ namespace GameNest.ServiceDefaults.Extensions
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            var jwtKey = configuration["JwtSettings:Key"];
-            var jwtIssuer = configuration["JwtSettings:Issuer"];
-            var jwtAudience = configuration["JwtSettings:Audience"];
+            var authority = configuration["Identity__Authority"]
+                          ?? configuration["Identity:Authority"]
+                          ?? "https://localhost:7052";
 
-            if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
+            var audience = configuration["Identity__Audience"]
+                        ?? configuration["Identity:Audience"]
+                        ?? "gamenest_api";
+
+            if (string.IsNullOrWhiteSpace(authority))
             {
                 throw new InvalidOperationException(
-                    "JWT settings (Key, Issuer, Audience) are not configured.");
+                    "JWT Authority is not configured. Please set 'Identity:Authority' in appsettings.json " +
+                    "or 'Identity__Authority' as environment variable.");
             }
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                    ClockSkew = TimeSpan.Zero,
-                    RoleClaimType = ClaimTypes.Role
-                };
-            });
+                    options.Authority = authority;
+                    options.Audience = audience;
+                    options.RequireHttpsMetadata = false;
 
-            services.AddAuthorization();
+                    options.RefreshOnIssuerKeyNotFound = true;
+
+                    options.TokenValidationParameters = new()
+                    {
+                        ValidAudiences = new[]
+                        {
+                            "gamenest_api",
+                            "https://localhost:7052/resources"
+                        },
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        RoleClaimType = "role",
+                        NameClaimType = "name",
+                        ClockSkew = TimeSpan.FromMinutes(5)
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnAuthenticationFailed = context =>
+                        {
+                            var logger = context.HttpContext.RequestServices
+                                .GetRequiredService<ILogger<JwtBearerEvents>>();
+                            logger.LogError("JWT validation failed: {Message}", context.Exception.Message);
+
+                            if (context.Exception is SecurityTokenSignatureKeyNotFoundException)
+                            {
+                                logger.LogWarning("Signing key not found. Triggering configuration refresh...");
+                                if (options.ConfigurationManager != null)
+                                    options.ConfigurationManager.RequestRefresh();
+                            }
+
+                            logger.LogDebug("Full exception: {Exception}", context.Exception.ToString());
+                            return Task.CompletedTask;
+                        },
+                        OnTokenValidated = context =>
+                        {
+                            var logger = context.HttpContext.RequestServices
+                                .GetRequiredService<ILogger<JwtBearerEvents>>();
+                            logger.LogInformation("Token validated successfully for user: {Name}",
+                                context.Principal?.Identity?.Name ?? "Unknown");
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim("scope", "gamenest_api");
+                });
+            });
 
             return services;
         }

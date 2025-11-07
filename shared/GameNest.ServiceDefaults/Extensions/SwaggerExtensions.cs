@@ -21,14 +21,24 @@ namespace GameNest.ServiceDefaults.Extensions
                     Version = version
                 });
 
-                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
-                    In = ParameterLocation.Header,
-                    Description = "Enter JWT token (without 'Bearer' prefix)",
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer",
-                    BearerFormat = "JWT"
+                    Type = SecuritySchemeType.OAuth2,
+                    Description = "OAuth2 Authorization Code Flow with PKCE via GameNest IdentityServer",
+                    Flows = new OpenApiOAuthFlows
+                    {
+                        AuthorizationCode = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new Uri("https://localhost:7052/connect/authorize"),
+                            TokenUrl = new Uri("https://localhost:7052/connect/token"),
+                            Scopes = new Dictionary<string, string>
+                            {
+                                { "openid", "OpenID Connect scope" },
+                                { "profile", "User profile information" },
+                                { "gamenest_api", "Full access to all GameNest APIs" }
+                            }
+                        }
+                    }
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -39,10 +49,10 @@ namespace GameNest.ServiceDefaults.Extensions
                             Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
+                                Id = "oauth2"
                             }
                         },
-                        Array.Empty<string>()
+                        new[] { "openid", "profile", "gamenest_api" }
                     }
                 });
             });
@@ -55,7 +65,15 @@ namespace GameNest.ServiceDefaults.Extensions
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", app.Environment.ApplicationName + " v1");
+                    options.OAuthClientId("swagger");
+                    options.OAuthAppName("GameNest Swagger UI");
+                    options.OAuthUsePkce();
+                    options.OAuthScopes("openid", "profile", "gamenest_api");
+                    options.OAuthScopeSeparator(" ");
+                });
             }
 
             return app;
