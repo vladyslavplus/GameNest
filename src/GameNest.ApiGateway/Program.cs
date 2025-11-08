@@ -10,7 +10,9 @@ builder.AddOpenTelemetryTracing();
 builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddServiceDiscovery();
 
-builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services
+    .AddKeycloakAuthentication(builder.Configuration)
+    .AddPermissionAuthorization();
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))

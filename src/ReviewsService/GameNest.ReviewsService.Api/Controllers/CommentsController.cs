@@ -42,6 +42,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPost]
+        [RequirePermission("reviews:write")]
         public async Task<IActionResult> Create([FromBody] CreateCommentCommand command, CancellationToken ct)
         {
             var commandWithUser = command with { CustomerId = User.GetUserId() };
@@ -51,6 +52,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPut("{id}/text")]
+        [RequirePermission("reviews:update")]
         public async Task<IActionResult> UpdateText(string id, [FromBody] UpdateCommentTextCommand command, CancellationToken ct)
         {
             var commandWithUser = command with { CommentId = id, RequesterId = User.GetUserId() };
@@ -60,6 +62,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPut("{commentId}/replies/{replyId}")]
+        [RequirePermission("reviews:update")]
         public async Task<IActionResult> UpdateReplyText(string commentId, string replyId, [FromBody] UpdateReplyTextCommand command, CancellationToken ct)
         {
             var commandWithUser = command with
@@ -75,6 +78,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermission("reviews:delete")]
         public async Task<IActionResult> Delete(string id, CancellationToken ct)
         {
             var command = new DeleteCommentCommand
@@ -89,6 +93,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPost("{id}/replies")]
+        [RequirePermission("reviews:write")]
         public async Task<IActionResult> AddReply(string id, [FromBody] AddReplyCommand command, CancellationToken ct)
         {
             var commandWithUser = command with
@@ -102,6 +107,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpDelete("{commentId}/replies/{replyId}")]
+        [RequirePermission("reviews:delete")]
         public async Task<IActionResult> DeleteReply(string commentId, string replyId, CancellationToken ct)
         {
             var command = new DeleteReplyCommand

@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.GamePlatforms;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.ServiceDefaults.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace GameNest.CatalogService.Api.Controllers
 {
     [ApiController]
     [Route("api/Catalog/[controller]")]
+    [Authorize]
     public class GamePlatformsController : ControllerBase
     {
         private readonly IGamePlatformService _gamePlatformService;
@@ -24,6 +26,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <response code="200">Returns the paginated list of game-platform relations</response>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<GamePlatformDto>>> GetGamePlatforms([FromQuery] GamePlatformParameters parameters, CancellationToken cancellationToken)
         {
@@ -39,6 +42,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="200">Returns the game-platform relation details</response>
         /// <response code="404">GamePlatform not found</response>
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GamePlatformDto>> GetGamePlatformById(Guid id, CancellationToken cancellationToken)
@@ -56,9 +60,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="201">GamePlatform created successfully</response>
         /// <response code="400">Validation error</response>
         [HttpPost]
+        [RequirePermission("catalog:write")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GamePlatformDto>> CreateGamePlatform([FromBody] GamePlatformCreateDto dto, CancellationToken cancellationToken)
         {
             var createdGamePlatform = await _gamePlatformService.CreateGamePlatformAsync(dto, cancellationToken);
@@ -73,9 +77,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="204">GamePlatform deleted successfully</response>
         /// <response code="404">GamePlatform not found</response>
         [HttpDelete("{id:guid}")]
+        [RequirePermission("catalog:delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGamePlatform(Guid id, CancellationToken cancellationToken)
         {
             await _gamePlatformService.DeleteGamePlatformAsync(id, cancellationToken);

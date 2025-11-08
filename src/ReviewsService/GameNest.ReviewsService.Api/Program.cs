@@ -65,7 +65,10 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<IIndexCreationService, MongoIndexCreationService>();
 builder.Services.AddSingleton<IDataSeeder, DatabaseSeeder>();
 
-builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services
+    .AddKeycloakAuthentication(builder.Configuration)
+    .AddPermissionAuthorization();
+
 builder.Services.AddAutoMapperWithLogging(
     typeof(ReviewGrpcProfile).Assembly
 );
@@ -99,7 +102,7 @@ builder.Services.AddGameGrpcClient(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerWithAuth("GameNest Reviews API");
+builder.Services.AddSwaggerWithKeycloak(builder.Configuration, "GameNest Reviews API");
 
 builder.Services.AddHealthChecks()
     .AddMongoHealthCheck(
@@ -120,7 +123,7 @@ using (var scope = app.Services.CreateScope())
     await seeder.SeedAsync();
 }
 
-app.UseSwaggerInDevelopment();
+app.UseSwaggerWithKeycloak();
 
 if (!app.Environment.IsDevelopment())
 {

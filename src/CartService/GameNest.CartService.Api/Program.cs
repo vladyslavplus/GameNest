@@ -21,50 +21,10 @@ builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddGrpcWithObservability(builder.Environment);
 builder.Services.AddServiceDiscovery();
 
-var authority = builder.Configuration["Identity__Authority"]
-             ?? builder.Configuration["Identity:Authority"]
-             ?? "https://localhost:7052";
+builder.Services
+    .AddKeycloakAuthentication(builder.Configuration)
+    .AddAuthorization();
 
-var audience = builder.Configuration["Identity__Audience"]
-            ?? builder.Configuration["Identity:Audience"]
-            ?? "gamenest_api";
-
-Console.WriteLine($"[JWKS TEST] Authority (from any source) = '{authority}'");
-Console.WriteLine($"[JWKS TEST] Audience (from any source) = '{audience}'");
-
-Console.WriteLine("\n[CONFIG DUMP] All Identity configuration keys:");
-foreach (var item in builder.Configuration.AsEnumerable().Where(x => x.Key.Contains("Identity", StringComparison.OrdinalIgnoreCase)))
-{
-    Console.WriteLine($"  {item.Key} = {item.Value}");
-}
-Console.WriteLine();
-
-if (!string.IsNullOrWhiteSpace(authority))
-{
-    using var client = new HttpClient(new HttpClientHandler
-    {
-        ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-    });
-
-    try
-    {
-        var response = await client.GetAsync($"{authority}/.well-known/openid-configuration");
-        var status = response.IsSuccessStatusCode ? "OK" : response.StatusCode.ToString();
-        Console.WriteLine($"[JWKS TEST] Testing endpoint: {authority}/.well-known/openid-configuration");
-        Console.WriteLine($"[JWKS TEST] Status: {status}");
-        Console.WriteLine($"[JWKS TEST] Content Length: {(response.Content.Headers.ContentLength ?? 0)}");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[JWKS TEST] ERROR: {ex.Message}");
-    }
-}
-else
-{
-    Console.WriteLine("[JWKS TEST] ERROR: Identity__Authority is null or empty.");
-}
-
-builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAutoMapperWithLogging(
     typeof(CartProfile).Assembly,
     typeof(CartGrpcProfile).Assembly
@@ -91,7 +51,7 @@ builder.Services.AddGameGrpcClient(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerWithAuth("GameNest Cart API");
+builder.Services.AddSwaggerWithKeycloak(builder.Configuration, "GameNest Cart API");
 
 builder.Services.AddHealthChecks()
     .AddRedis(
@@ -103,11 +63,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-app.Logger.LogInformation("=== JWT AUTHENTICATION CONFIGURATION ===");
-app.Logger.LogInformation($"Authority: {app.Configuration["Identity__Authority"]}");
-app.Logger.LogInformation($"Audience: {app.Configuration["Identity__Audience"]}");
-
-app.UseSwaggerInDevelopment();
+app.UseSwaggerWithKeycloak();
 
 if (!app.Environment.IsDevelopment())
 {

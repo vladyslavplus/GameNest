@@ -1,0 +1,3 @@
+name: GameNestKeycloak
+runtime: dotnet
+description: GameNest Keycloak infrastructure configuration

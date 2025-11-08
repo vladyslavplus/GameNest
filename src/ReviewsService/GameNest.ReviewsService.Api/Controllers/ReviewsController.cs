@@ -40,6 +40,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPost]
+        [RequirePermission("reviews:write")]
         public async Task<IActionResult> Create([FromBody] AddReviewCommand command, CancellationToken ct)
         {
             var commandWithUser = command with
@@ -52,6 +53,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [RequirePermission("reviews:update")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateReviewCommand command, CancellationToken ct)
         {
             var commandWithUser = command with
@@ -65,6 +67,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermission("reviews:delete")]
         public async Task<IActionResult> Delete(string id, CancellationToken ct)
         {
             var command = new DeleteReviewCommand

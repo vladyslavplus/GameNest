@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.Developers;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.ServiceDefaults.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace GameNest.CatalogService.Api.Controllers
 {
     [ApiController]
     [Route("api/Catalog/[controller]")]
+    [Authorize]
     public class DevelopersController : ControllerBase
     {
         private readonly IDeveloperService _developerService;
@@ -24,6 +26,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <response code="200">Returns the paginated list of developers</response>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<DeveloperDto>>> GetDevelopers([FromQuery] DeveloperParameters parameters, CancellationToken cancellationToken)
         {
@@ -39,6 +42,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="200">Returns the developer details including associated games and roles</response>
         /// <response code="404">Developer not found</response>
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DeveloperDto>> GetDeveloperById(Guid id, CancellationToken cancellationToken)
@@ -56,9 +60,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="201">Developer created successfully</response>
         /// <response code="400">Validation error</response>
         [HttpPost]
+        [RequirePermission("catalog:write")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DeveloperDto>> CreateDeveloper([FromBody] DeveloperCreateDto dto, CancellationToken cancellationToken)
         {
             var createdDeveloper = await _developerService.CreateDeveloperAsync(dto, cancellationToken);
@@ -75,10 +79,10 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="400">Validation error or ID mismatch</response>
         /// <response code="404">Developer not found</response>
         [HttpPut("{id:guid}")]
+        [RequirePermission("catalog:write")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DeveloperDto>> UpdateDeveloper(Guid id, [FromBody] DeveloperUpdateDto updateDto, CancellationToken cancellationToken)
         {
             var updatedDeveloper = await _developerService.UpdateDeveloperAsync(id, updateDto, cancellationToken);
@@ -93,9 +97,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="204">Developer deleted successfully</response>
         /// <response code="404">Developer not found</response>
         [HttpDelete("{id:guid}")]
+        [RequirePermission("catalog:delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteDeveloper(Guid id, CancellationToken cancellationToken)
         {
             await _developerService.DeleteDeveloperAsync(id, cancellationToken);

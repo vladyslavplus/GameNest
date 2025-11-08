@@ -27,6 +27,7 @@ namespace GameNest.OrderService.Api.Controllers
         /// <response code="200">Returns the list of orders</response>
         /// <response code="401">User is not authorized</response>
         [HttpGet]
+        [RequirePermission("orders:read")]
         [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<OrderDto>>> GetAll(CancellationToken ct)
@@ -44,6 +45,7 @@ namespace GameNest.OrderService.Api.Controllers
         /// <response code="401">User is not authorized</response>
         /// <response code="404">Order not found</response>
         [HttpGet("{id:guid}")]
+        [RequirePermission("orders:read")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,6 +64,7 @@ namespace GameNest.OrderService.Api.Controllers
         /// <response code="400">Validation error (e.g., empty cart)</response>
         /// <response code="401">User is not authorized</response>
         [HttpPost]
+        [RequirePermission("orders:create")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -74,7 +77,7 @@ namespace GameNest.OrderService.Api.Controllers
         }
 
         /// <summary>
-        /// Update an existing order status (Admin action).
+        /// Update an existing order status.
         /// </summary>
         /// <param name="id">Order Id</param>
         /// <param name="dto">Order update data (status only)</param>
@@ -83,11 +86,11 @@ namespace GameNest.OrderService.Api.Controllers
         /// <response code="401">User is not authorized</response>
         /// <response code="404">Order not found</response>
         [HttpPut("{id:guid}")]
+        [RequirePermission("orders:update")]
         [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<OrderDto>> Update(Guid id, [FromBody] OrderUpdateDto dto, CancellationToken ct)
         {
             _logger.LogInformation("Attempting to update status for order {OrderId}", id);
@@ -96,7 +99,7 @@ namespace GameNest.OrderService.Api.Controllers
         }
 
         /// <summary>
-        /// Delete an order and its items (Admin action).
+        /// Delete an order and its items.
         /// </summary>
         /// <param name="id">Order Id</param>
         /// <param name="soft">Soft delete flag (default true)</param>
@@ -104,10 +107,10 @@ namespace GameNest.OrderService.Api.Controllers
         /// <response code="401">User is not authorized</response>
         /// <response code="404">Order not found</response>
         [HttpDelete("{id:guid}")]
+        [RequirePermission("orders:delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid id, [FromQuery] bool soft = true, CancellationToken ct = default)
         {
             _logger.LogInformation("Attempting to delete order {OrderId} (Soft={SoftDelete})", id, soft);

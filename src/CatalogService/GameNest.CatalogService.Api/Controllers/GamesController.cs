@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.Games;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.ServiceDefaults.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace GameNest.CatalogService.Api.Controllers
 {
     [ApiController]
     [Route("api/Catalog/[controller]")]
+    [Authorize]
     public class GamesController : ControllerBase
     {
         private readonly IGameService _gameService;
@@ -23,6 +25,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <param name="parameters">Filtering and pagination parameters</param>
         /// <response code="200">Returns the list of games</response>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<GameDto>>> GetGames([FromQuery] GameParameters parameters, CancellationToken cancellationToken)
         {
@@ -37,6 +40,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="200">Returns the game</response>
         /// <response code="404">Game not found</response>
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GameDto>> GetGameById(Guid id, CancellationToken cancellationToken)
@@ -55,10 +59,10 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="400">Validation error</response>
         /// <response code="409">Conflict – game already exists</response>
         [HttpPost]
+        [RequirePermission("catalog:write")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GameDto>> CreateGame([FromBody] GameCreateDto dto, CancellationToken cancellationToken)
         {
             var createdGame = await _gameService.CreateGameAsync(dto, cancellationToken);
@@ -74,10 +78,10 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="400">ID mismatch or validation error</response>
         /// <response code="404">Game not found</response>
         [HttpPut("{id:guid}")]
+        [RequirePermission("catalog:write")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GameDto>> UpdateGame(Guid id, [FromBody] GameUpdateDto updateDto, CancellationToken cancellationToken)
         {
             var updatedGame = await _gameService.UpdateGameAsync(id, updateDto, cancellationToken);
@@ -91,9 +95,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="204">Game deleted successfully</response>
         /// <response code="404">Game not found</response>
         [HttpDelete("{id:guid}")]
+        [RequirePermission("catalog:delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGame(Guid id, CancellationToken cancellationToken)
         {
             await _gameService.DeleteGameAsync(id, cancellationToken);

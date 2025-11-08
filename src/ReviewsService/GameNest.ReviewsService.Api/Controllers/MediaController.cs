@@ -39,6 +39,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPost]
+        [RequirePermission("reviews:write")]
         public async Task<IActionResult> Create([FromBody] CreateMediaCommand command, CancellationToken ct)
         {
             var commandWithUser = command with { CustomerId = User.GetUserId() };
@@ -47,6 +48,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpPut("{id}/url")]
+        [RequirePermission("reviews:update")]
         public async Task<IActionResult> UpdateUrl(string id, [FromBody] UpdateMediaUrlCommand command, CancellationToken ct)
         {
             var commandWithUser = command with { MediaId = id, RequesterId = User.GetUserId() };
@@ -55,6 +57,7 @@ namespace GameNest.ReviewsService.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [RequirePermission("reviews:delete")]
         public async Task<IActionResult> Delete(string id, CancellationToken ct)
         {
             var command = new DeleteMediaCommand

@@ -55,7 +55,10 @@ builder.Services.AddSingleton<IMemoryCacheService, MemoryCacheService>();
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 builder.Services.AddSingleton<IHybridCacheService, HybridCacheService>();
 
-builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services
+    .AddKeycloakAuthentication(builder.Configuration)
+    .AddPermissionAuthorization();
+
 builder.Services.AddAutoMapperWithLogging(
     typeof(GameProfile).Assembly,
     typeof(GameGrpcProfile).Assembly
@@ -130,7 +133,8 @@ builder.Services.AddCacheBackgroundJobs();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerWithAuth("GameNest Catalog API");
+
+builder.Services.AddSwaggerWithKeycloak(builder.Configuration, "GameNest Catalog API");
 
 builder.Services
     .AddHealthChecks()
@@ -156,7 +160,7 @@ using (var scope = app.Services.CreateScope())
     await preloader.PreloadAsync(CancellationToken.None);
 }
 
-app.UseSwaggerInDevelopment();
+app.UseSwaggerWithKeycloak();
 
 if (!app.Environment.IsDevelopment())
 {

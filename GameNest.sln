@@ -87,6 +87,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IdentityServerService", "Id
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.IdentityServerService.Api", "src\IdentityServerService\GameNest.IdentityServerService.Api\GameNest.IdentityServerService.Api.csproj", "{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infrastructure", "infrastructure", "{DEBA3CB4-03DF-4764-94A8-0441506B5237}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameNest.Pulumi", "infrastructure\GameNest.Pulumi.csproj", "{AFDF0258-5078-4F8D-9BB2-E5BCDABDF822}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -225,6 +229,10 @@ Global
 		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFDF0258-5078-4F8D-9BB2-E5BCDABDF822}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFDF0258-5078-4F8D-9BB2-E5BCDABDF822}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFDF0258-5078-4F8D-9BB2-E5BCDABDF822}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFDF0258-5078-4F8D-9BB2-E5BCDABDF822}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -270,6 +278,7 @@ Global
 		{C3826481-F16B-4727-AE1A-13D1FF76D7EE} = {92C0D404-BB24-4D8D-9141-B3F2F378A11E}
 		{867C7379-0E6C-4A88-B9D9-D22B5F0A2B36} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{71ADA39D-9161-CEA8-EEC1-55AAFE37B828} = {867C7379-0E6C-4A88-B9D9-D22B5F0A2B36}
+		{AFDF0258-5078-4F8D-9BB2-E5BCDABDF822} = {DEBA3CB4-03DF-4764-94A8-0441506B5237}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BFE9F865-6438-4B5B-A53A-E7ABF9EDEA19}

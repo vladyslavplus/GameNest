@@ -26,7 +26,10 @@ builder.Services.AddCorrelationIdForwarding();
 builder.Services.AddGrpcWithObservability(builder.Environment);
 builder.Services.AddServiceDiscovery();
 
-builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services
+    .AddKeycloakAuthentication(builder.Configuration)
+    .AddPermissionAuthorization();
+
 builder.Services.AddAutoMapperWithLogging(
     typeof(OrderProfile).Assembly,
     typeof(OrderGrpcProfile).Assembly
@@ -80,7 +83,7 @@ builder.Services.AddScoped<ICartGrpcClient, CartGrpcClient>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerWithAuth("GameNest Order API");
+builder.Services.AddSwaggerWithKeycloak(builder.Configuration, "GameNest Order API");
 
 builder.Services
     .AddHealthChecks()
@@ -92,7 +95,7 @@ builder.Services
 
 var app = builder.Build();
 
-app.UseSwaggerInDevelopment();
+app.UseSwaggerWithKeycloak();
 
 if (!app.Environment.IsDevelopment())
 {

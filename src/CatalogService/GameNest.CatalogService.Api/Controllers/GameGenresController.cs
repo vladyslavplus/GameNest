@@ -1,6 +1,7 @@
 ﻿using GameNest.CatalogService.BLL.DTOs.GameGenres;
 using GameNest.CatalogService.BLL.Services.Interfaces;
 using GameNest.CatalogService.Domain.Entities.Parameters;
+using GameNest.ServiceDefaults.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ namespace GameNest.CatalogService.Api.Controllers
 {
     [ApiController]
     [Route("api/Catalog/[controller]")]
+    [Authorize]
     public class GameGenresController : ControllerBase
     {
         private readonly IGameGenreService _gameGenreService;
@@ -24,6 +26,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <response code="200">Returns the paginated list of game genres</response>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<GameGenreDto>>> GetGameGenres(
             [FromQuery] GameGenreParameters parameters,
@@ -41,6 +44,7 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="200">Returns the game genre details</response>
         /// <response code="404">Game genre not found</response>
         [HttpGet("{id:guid}")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<GameGenreDto>> GetGameGenreById(Guid id, CancellationToken cancellationToken)
@@ -58,9 +62,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="201">GameGenre created successfully</response>
         /// <response code="400">Validation error</response>
         [HttpPost]
+        [RequirePermission("catalog:write")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<GameGenreDto>> CreateGameGenre([FromBody] GameGenreCreateDto dto, CancellationToken cancellationToken)
         {
             var createdGameGenre = await _gameGenreService.CreateGameGenreAsync(dto, cancellationToken);
@@ -75,9 +79,9 @@ namespace GameNest.CatalogService.Api.Controllers
         /// <response code="204">GameGenre deleted successfully</response>
         /// <response code="404">GameGenre not found</response>
         [HttpDelete("{id:guid}")]
+        [RequirePermission("catalog:delete")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGameGenre(Guid id, CancellationToken cancellationToken)
         {
             await _gameGenreService.DeleteGameGenreAsync(id, cancellationToken);

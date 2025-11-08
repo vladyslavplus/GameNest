@@ -59,7 +59,7 @@ builder.Services.AddIdentityServer(options =>
 
 
 builder.Services.AddRazorPages();
-builder.Services.AddSwaggerWithAuth("GameNest IdentityServerService API");
+// builder.Services.AddSwaggerWithAuth("GameNest IdentityServerService API");
 
 var app = builder.Build();
 
@@ -69,7 +69,7 @@ app.UseRouting();
 app.UseIdentityServer();
 app.UseAuthorization();
 
-app.UseSwaggerInDevelopment();
+// app.UseSwaggerInDevelopment();
 
 app.MapRazorPages();
 await SeedData.EnsureSeedDataAsync(app.Services);
