@@ -220,6 +220,7 @@ return await Deployment.RunAsync(() =>
         WebOrigins = new[] { "*" },
         PkceCodeChallengeMethod = "S256",
     });
+
     var swaggerDefaultScopes = new Keycloak.OpenId.ClientDefaultScopes("swagger-default-scopes", new Keycloak.OpenId.ClientDefaultScopesArgs
     {
         RealmId = realm.Id,
@@ -229,20 +230,60 @@ return await Deployment.RunAsync(() =>
             "openid",
             "profile",
             "email",
-            "gamenest_api",
-            "catalog:write",
-            "catalog:delete",
-            "orders:read",
-            "orders:create",
-            "orders:update",
-            "orders:delete",
-            "payments:read",
-            "payments:create",
-            "payments:update",
-            "payments:delete",
-            "reviews:write",
-            "reviews:update",
-            "reviews:delete"
+            "gamenest_api"
+        },
+    });
+
+    var swaggerOptionalScopes = new Keycloak.OpenId.ClientOptionalScopes("swagger-optional-scopes", new Keycloak.OpenId.ClientOptionalScopesArgs
+    {
+        RealmId = realm.Id,
+        ClientId = swaggerClient.Id,
+        OptionalScopes = new InputList<string>
+        {
+            "catalog:write", "catalog:delete",
+            "orders:read", "orders:create", "orders:update", "orders:delete",
+            "payments:read", "payments:create", "payments:update", "payments:delete",
+            "reviews:write", "reviews:update", "reviews:delete"
+        },
+    });
+
+    var postmanClient = new Keycloak.OpenId.Client("postman-client", new Keycloak.OpenId.ClientArgs
+    {
+        RealmId = realm.Id,
+        ClientId = "postman",
+        Name = "Postman Client",
+        Enabled = true,
+        AccessType = "CONFIDENTIAL",
+        StandardFlowEnabled = false,
+        DirectAccessGrantsEnabled = true, // Resource Owner Password Flow for Postman
+        ImplicitFlowEnabled = false,
+        ServiceAccountsEnabled = false,
+        ClientSecret = "postman-secret-123",
+    });
+
+    var postmanDefaultScopes = new Keycloak.OpenId.ClientDefaultScopes("postman-default-scopes", new Keycloak.OpenId.ClientDefaultScopesArgs
+    {
+        RealmId = realm.Id,
+        ClientId = postmanClient.Id,
+        DefaultScopes = new InputList<string>
+        {
+            "openid",
+            "profile",
+            "email",
+            "gamenest_api"
+        },
+    });
+
+    var postmanOptionalScopes = new Keycloak.OpenId.ClientOptionalScopes("postman-optional-scopes", new Keycloak.OpenId.ClientOptionalScopesArgs
+    {
+        RealmId = realm.Id,
+        ClientId = postmanClient.Id,
+        OptionalScopes = new InputList<string>
+        {
+            "catalog:write", "catalog:delete",
+            "orders:read", "orders:create", "orders:update", "orders:delete",
+            "payments:read", "payments:create", "payments:update", "payments:delete",
+            "reviews:write", "reviews:update", "reviews:delete"
         },
     });
 

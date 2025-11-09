@@ -143,20 +143,7 @@ namespace GameNest.ServiceDefaults.Extensions
                         "openid",
                         "profile",
                         "email",
-                        "gamenest_api",
-                        "catalog:write",
-                        "catalog:delete",
-                        "orders:read",
-                        "orders:create",
-                        "orders:update",
-                        "orders:delete",
-                        "payments:read",
-                        "payments:create",
-                        "payments:update",
-                        "payments:delete",
-                        "reviews:write",
-                        "reviews:update",
-                        "reviews:delete"
+                        "gamenest_api"
                     );
 
                     options.OAuthScopeSeparator(" ");
