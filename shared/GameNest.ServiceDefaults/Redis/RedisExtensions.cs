@@ -12,10 +12,13 @@ namespace GameNest.ServiceDefaults.Redis
         {
             services.AddSingleton<IConnectionMultiplexer>(sp =>
             {
-                var redisConnection = config.GetConnectionString("redis")
-                                   ?? config.GetConnectionString("Redis")
-                                   ?? throw new InvalidOperationException(
-                                       "Redis connection string not found. Expected 'redis' or 'Redis' in ConnectionStrings.");
+                var redisConnection =
+                    config.GetConnectionString("redis") ??
+                    config.GetConnectionString("Redis") ??
+                    config["REDIS_CONNECTIONSTRING"] ??
+                    Environment.GetEnvironmentVariable("REDIS_CONNECTIONSTRING") ??
+                    throw new InvalidOperationException(
+                        "Redis connection string not found. Expected 'ConnectionStrings:redis' or 'REDIS_CONNECTIONSTRING'.");
 
                 var configuration = ConfigurationOptions.Parse(redisConnection);
                 configuration.AbortOnConnectFail = false;

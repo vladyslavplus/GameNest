@@ -17,11 +17,17 @@ namespace GameNest.ServiceDefaults.Extensions
             string title,
             string version = "v1")
         {
-            var keycloakUrl = configuration["Keycloak:Url"]
-                           ?? configuration["services:keycloak:http:0"]
-                           ?? "http://localhost:8080";
+            var keycloakUrl =
+                configuration["Keycloak:Url"]
+                ?? configuration["services:keycloak:https:0"]
+                ?? configuration["services:keycloak:http:0"]
+                ?? Environment.GetEnvironmentVariable("KEYCLOAK_URL")
+                ?? "http://localhost:8080";
 
-            var realm = configuration["Keycloak:Realm"] ?? "GameNest";
+            var realm =
+                configuration["Keycloak:Realm"]
+                ?? Environment.GetEnvironmentVariable("KEYCLOAK_REALM")
+                ?? "GameNest";
 
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
