@@ -1,3 +1,5 @@
+using GameNest.AppHost.Extensions;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var postgres = builder.AddPostgres("postgres")
@@ -49,7 +51,8 @@ var keycloakAdminPass = builder.AddParameter("keycloak-admin-password", "admin",
 
 var keycloak = builder.AddKeycloak("keycloak", port: 8080, keycloakAdminUser, keycloakAdminPass)
     .WithDataVolume()
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithAutoConfiguration();
 
 var catalogService = builder.AddProject<Projects.GameNest_CatalogService_Api>("catalogservice-api")
     .WithReference(catalogDb)
