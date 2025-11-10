@@ -122,3 +122,6 @@ tempkey.jwk
 signingkey.jwk
 rsakey.jwk
 keys/
+
+# Pulumi local configs
+Pulumi.*.yaml
