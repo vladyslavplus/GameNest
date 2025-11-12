@@ -4,6 +4,7 @@ using GameNest.IdentityServerService.Api.Entities;
 using GameNest.ServiceDefaults.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,12 +55,54 @@ builder.Services.AddIdentityServer(options =>
         opt.EnableTokenCleanup = true;
         opt.TokenCleanupInterval = 3600;
     })
-    .AddDeveloperSigningCredential(true, Path.Combine(AppContext.BaseDirectory, "tempkey.rsa"));
-
-
+    .AddDeveloperSigningCredential(true);
 
 builder.Services.AddRazorPages();
-// builder.Services.AddSwaggerWithAuth("GameNest IdentityServerService API");
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "GameNest IdentityServer",
+        Version = "v1",
+        Description = "Authorization server for GameNest platform"
+    });
+
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Description = "OAuth2 Authorization Code flow via IdentityServer",
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri("https://localhost:7052/connect/authorize"),
+                TokenUrl = new Uri("https://localhost:7052/connect/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    { "openid", "OpenID Connect" },
+                    { "profile", "User profile" },
+                    { "email", "Email information" },
+                    { "gamenest_api", "Access GameNest API" }
+                }
+            }
+        }
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "oauth2"
+                }
+            },
+            new[] { "openid", "profile", "email", "gamenest_api" }
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -69,7 +112,21 @@ app.UseRouting();
 app.UseIdentityServer();
 app.UseAuthorization();
 
-// app.UseSwaggerInDevelopment();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "GameNest IdentityServer v1");
+
+        options.OAuthClientId("swagger");
+        options.OAuthAppName("GameNest IdentityServer Swagger UI");
+        options.OAuthUsePkce();
+        options.OAuthScopes("openid", "profile", "email", "gamenest_api");
+        options.OAuthScopeSeparator(" ");
+        options.EnablePersistAuthorization();
+    });
+}
 
 app.MapRazorPages();
 await SeedData.EnsureSeedDataAsync(app.Services);

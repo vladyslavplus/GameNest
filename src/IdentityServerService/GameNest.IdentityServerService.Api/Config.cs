@@ -37,44 +37,67 @@ public static class Config
             new Client
             {
                 ClientId = "swagger",
-                ClientName = "Swagger UI (All Services)",
+                ClientName = "Swagger UI (All GameNest Services)",
                 AllowedGrantTypes = GrantTypes.Code,
                 RequirePkce = true,
                 RequireClientSecret = false,
+                AllowAccessTokensViaBrowser = true,
+                AllowOfflineAccess = true,
+                AccessTokenLifetime = 3600,
+
                 RedirectUris =
                 {
+                    // Order Service
                     "https://localhost:7045/swagger/oauth2-redirect.html",
+                    "https://localhost:7122/swagger/oauth2-redirect.html",
+
+                    // Catalog Service
                     "https://localhost:7048/swagger/oauth2-redirect.html",
+                    "https://localhost:7046/swagger/oauth2-redirect.html",
+
+                    // Review Service
                     "https://localhost:7047/swagger/oauth2-redirect.html",
-                    "https://localhost:7049/swagger/oauth2-redirect.html",
+                    "https://localhost:7260/swagger/oauth2-redirect.html",
+
+                    // Cart Service
                     "https://localhost:7050/swagger/oauth2-redirect.html",
-                    "https://localhost:7051/swagger/oauth2-redirect.html",
-                    "https://localhost:7052/swagger/oauth2-redirect.html"
+                    "https://localhost:7162/swagger/oauth2-redirect.html",
+
+                    // Aggregator Service
+                    "https://localhost:7049/swagger/oauth2-redirect.html",
+                    "https://localhost:7111/swagger/oauth2-redirect.html",
+
+                    // Gateway
+                    "https://localhost:5000/swagger/oauth2-redirect.html"
                 },
+
                 AllowedCorsOrigins =
                 {
                     "https://localhost:7045",
+                    "https://localhost:7122",
                     "https://localhost:7048",
+                    "https://localhost:7046",
                     "https://localhost:7047",
-                    "https://localhost:7049",
+                    "https://localhost:7260",
                     "https://localhost:7050",
-                    "https://localhost:7051",
-                    "https://localhost:7052"
+                    "https://localhost:7162",
+                    "https://localhost:7049",
+                    "https://localhost:7111",
+                    "https://localhost:5000"
                 },
-                AllowedScopes = { "openid", "profile", "gamenest_api" },
-                AllowOfflineAccess = true,
-                AllowAccessTokensViaBrowser = true,
-                AccessTokenLifetime = 3600
+
+                AllowedScopes = { "openid", "profile", "email", "gamenest_api" }
             },
+
             new Client
             {
                 ClientId = "postman",
                 ClientName = "Postman Testing Client",
                 AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                ClientSecrets = { new Secret("postman-secret".Sha256()) },
                 AllowAccessTokensViaBrowser = true,
-                ClientSecrets = { new Secret("secret".Sha256()) },
-                AllowedScopes = { "openid", "profile", "email", "gamenest_api" },
-                AccessTokenLifetime = 3600
+                AccessTokenLifetime = 3600,
+                AllowedScopes = { "openid", "profile", "email", "gamenest_api" }
             }
         };
 }

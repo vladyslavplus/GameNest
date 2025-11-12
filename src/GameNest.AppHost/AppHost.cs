@@ -55,14 +55,14 @@ var identityService = builder.AddProject<Projects.GameNest_IdentityService_Api>(
     .WithHttpEndpoint(port: 5006, name: "identity-http")
     .WithHttpsEndpoint(port: 7051, name: "identity-https")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
-
-var identityServerService = builder.AddProject<Projects.GameNest_IdentityServerService_Api>("identityserverservice-api")
-    .WithReference(identityServerDb)
-    .WaitFor(identityServerDb)
-    .WithHttpEndpoint(port: 5007, name: "identityserver-http")
-    .WithHttpsEndpoint(port: 7052, name: "identityserver-https")
-    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 */
+
+//var identityServerService = builder.AddProject<Projects.GameNest_IdentityServerService_Api>("identityserverservice-api")
+//    .WithReference(identityServerDb)
+//    .WaitFor(identityServerDb)
+//    .WithHttpEndpoint(port: 5010, name: "identityserver-http")
+//    .WithHttpsEndpoint(port: 7052, name: "identityserver-https")
+//    .WithEnvironment("ASPNETCORE_ENVIRONMENT", builder.Environment.EnvironmentName);
 
 var keycloak = builder.AddKeycloak("keycloak", port: 8080, keycloakAdminUser, keycloakAdminPass)
     .WithDataVolume()
